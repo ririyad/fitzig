@@ -3,5 +3,10 @@ import { createConvexAuthHandlers } from '@mmailaender/convex-auth-svelte/svelte
 const { getAuthState } = createConvexAuthHandlers();
 
 export async function load({ locals }: any) {
-	return { authState: await getAuthState(locals) };
+	try {
+		return { authState: await getAuthState(locals) };
+	} catch (e) {
+		console.error('Auth state loading error:', e);
+		return { authState: null };
+	}
 }

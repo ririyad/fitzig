@@ -5,20 +5,32 @@ import {
 	createRouteMatcher
 } from '@mmailaender/convex-auth-svelte/sveltekit/server';
 
-const isPublicRoute = createRouteMatcher(['/login', '/register']);
+const isPublicRoute = createRouteMatcher(['/login', '/register', '/']);
 
 const { handleAuth, isAuthenticated } = createConvexAuthHooks();
 
 const requireAuth = async ({ event, resolve }: any) => {
-	if (isPublicRoute(event.url.pathname)) {
+	try {
+		if (isPublicRoute(event.url.pathname)) {
+			return resolve(event);
+		}
+
+		const authenticated = await isAuthenticated(event);
+
+		if (!authenticated) {
+			throw redirect(302, `/login?redirectTo=${encodeURIComponent(event.url.pathname)}`);
+		}
+
 		return resolve(event);
-	}
+	} catch (e: any) {
+		console.error('Auth middleware error:', e);
 
-	if (!(await isAuthenticated(event))) {
-		throw redirect(302, `/login?redirectTo=${encodeURIComponent(event.url.pathname)}`);
-	}
+		if (e?.status === 302) {
+			throw e;
+		}
 
-	return resolve(event);
+		throw redirect(302, '/login');
+	}
 };
 
 export const handle = sequence(handleAuth, requireAuth);
