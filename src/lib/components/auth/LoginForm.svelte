@@ -35,10 +35,11 @@
 
 		<form onsubmit={handleLogin} class="flex flex-col gap-4">
 			<div class="form-control">
-				<label class="label">
+				<label for="email" class="label">
 					<span class="label-text">Email</span>
 				</label>
 				<input
+					id="email"
 					type="email"
 					name="email"
 					placeholder="your@email.com"
@@ -49,10 +50,11 @@
 			</div>
 
 			<div class="form-control">
-				<label class="label">
+				<label for="password" class="label">
 					<span class="label-text">Password</span>
 				</label>
 				<input
+					id="password"
 					type="password"
 					name="password"
 					placeholder="password"
