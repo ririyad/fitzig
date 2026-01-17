@@ -1,6 +1,8 @@
 <script lang="ts">
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
+	import { ConvexAuthProvider } from '@convex-dev/auth/react';
+	import { convexClient } from '$lib/convex/client';
 
 	let { children } = $props();
 </script>
@@ -9,4 +11,6 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-{@render children()}
+<ConvexAuthProvider client={convexClient}>
+	{@render children()}
+</ConvexAuthProvider>
