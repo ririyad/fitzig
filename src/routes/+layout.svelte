@@ -1,16 +1,15 @@
 <script lang="ts">
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
-	import { ConvexAuthProvider } from '@convex-dev/auth/react';
-	import { convexClient } from '$lib/convex/client';
+	import { setupConvexAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
 
-	let { children } = $props();
+	let { children, data } = $props();
+
+	setupConvexAuth({ getServerState: () => data.authState });
 </script>
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<ConvexAuthProvider client={convexClient}>
-	{@render children()}
-</ConvexAuthProvider>
+{@render children()}
