@@ -14,31 +14,87 @@ A PWA-compatible fitness tracker that allows users to create workout sessions, s
 
 ---
 
+## Getting Started
+
+```bash
+# Install dependencies
+npm install
+
+# Set up Convex (requires authentication)
+npx convex dev
+
+# Copy environment example and add your Convex URL
+cp .env.example .env.local
+# Edit .env.local with your PUBLIC_CONVEX_URL
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+```
+
+---
+
+## Project Structure
+
+```
+src/
+├── lib/
+│   ├── components/
+│   │   ├── auth/          # Login, Register forms
+│   │   ├── exercises/     # Exercise cards, lists
+│   │   ├── sessions/      # Session cards, wizard
+│   │   ├── timer/         # Countdown timer
+│   │   └── ui/            # Shared UI components
+│   ├── stores/            # Svelte stores
+│   ├── convex/            # Convex client setup
+│   └── utils/             # Helper functions
+├── routes/
+│   ├── (public)/          # Public pages (landing, auth)
+│   └── (app)/             # Protected app routes
+│       ├── dashboard/
+│       ├── sessions/
+│       ├── exercises/
+│       ├── history/
+│       └── settings/
+convex/
+├── schema.ts              # Database schema
+├── users.ts               # User functions
+├── exercises.ts           # Exercise CRUD
+├── sessions.ts            # Session CRUD
+├── sessionExercises.ts    # Progression map
+├── sessionLogs.ts         # Workout history
+└── seed.ts                # Seed system exercises
+```
+
+---
+
 ## Implementation Stages
 
 ### Stage 1: Project Setup & Foundation
 
 #### 1.1 Initialize SvelteKit Project
-- [ ] Create new SvelteKit project with TypeScript template
-- [ ] Configure `svelte.config.js` with adapter-auto
-- [ ] Set up path aliases (`$lib`, `$components`)
-- [ ] Configure TypeScript strict mode
+- [x] Create new SvelteKit project with TypeScript template
+- [x] Configure `svelte.config.js` with adapter-auto
+- [x] Set up path aliases (`$lib`, `$components`)
+- [x] Configure TypeScript strict mode
 
 #### 1.2 Install & Configure TailwindCSS + DaisyUI
-- [ ] Install TailwindCSS, PostCSS, Autoprefixer
-- [ ] Install DaisyUI plugin
-- [ ] Configure `tailwind.config.js` with DaisyUI themes (`cupcake` for light, `night` for dark)
-- [ ] Create global CSS with Tailwind directives
-- [ ] Add base theme toggle utility
+- [x] Install TailwindCSS, PostCSS, Autoprefixer
+- [x] Install DaisyUI plugin
+- [x] Configure `tailwind.config.js` with DaisyUI themes (`light` for light, `dark` for dark)
+- [x] Create global CSS with Tailwind directives
+- [x] Add base theme toggle utility
 
 #### 1.3 Set Up Convex Backend
-- [ ] Install `convex` and `convex-svelte` packages
-- [ ] Initialize Convex project (`npx convex dev`)
-- [ ] Create Convex client configuration in `$lib/convex/`
-- [ ] Set up environment variables (`.env.local`)
+- [x] Install `convex` and `convex-svelte` packages
+- [x] Create Convex client configuration in `$lib/convex/`
+- [x] Set up environment variables (`.env.example`)
+- [ ] Initialize Convex project (`npx convex dev`) - *requires manual authentication*
 
 #### 1.4 Define Database Schema
-- [ ] Create `convex/schema.ts` with tables:
+- [x] Create `convex/schema.ts` with tables:
   - `users` - User profiles
   - `exercises` - Exercise library (system + custom)
   - `sessions` - Workout sessions
@@ -46,23 +102,9 @@ A PWA-compatible fitness tracker that allows users to create workout sessions, s
   - `sessionLogs` - Completed workout history
 
 #### 1.5 Project Structure Setup
-- [ ] Create folder structure:
-  ```
-  src/
-  ├── lib/
-  │   ├── components/
-  │   │   ├── auth/
-  │   │   ├── exercises/
-  │   │   ├── sessions/
-  │   │   ├── timer/
-  │   │   └── ui/
-  │   ├── stores/
-  │   ├── convex/
-  │   └── utils/
-  └── routes/
-      ├── (public)/
-      └── (app)/
-  ```
+- [x] Create folder structure for components, stores, utils
+- [x] Create index files for component exports
+- [x] Add utility functions (formatDuration, formatDate, etc.)
 
 ---
 
@@ -90,7 +132,7 @@ A PWA-compatible fitness tracker that allows users to create workout sessions, s
 - [ ] Redirect authenticated users from auth pages to `/dashboard`
 
 #### 2.5 User Profile Functions
-- [ ] `convex/users.ts`:
+- [x] `convex/users.ts`:
   - `getCurrentUser` query
   - `updateProfile` mutation
   - `updatePreferences` mutation (theme, etc.)
@@ -128,7 +170,7 @@ A PWA-compatible fitness tracker that allows users to create workout sessions, s
 ### Stage 4: Exercise Library
 
 #### 4.1 Convex Exercise Functions
-- [ ] `convex/exercises.ts`:
+- [x] `convex/exercises.ts`:
   - `listExercises` query - Get all exercises (system + user's custom)
   - `getExerciseById` query
   - `createExercise` mutation - Add custom exercise
@@ -136,7 +178,7 @@ A PWA-compatible fitness tracker that allows users to create workout sessions, s
   - `deleteExercise` mutation
 
 #### 4.2 Seed System Exercises
-- [ ] Create `convex/seed.ts` with predefined exercises:
+- [x] Create `convex/seed.ts` with predefined exercises:
   - Strength: Push-ups, Squats, Lunges, Plank, etc.
   - Cardio: Jumping Jacks, Burpees, High Knees, etc.
   - Flexibility: Stretches, Yoga poses, etc.
@@ -159,7 +201,7 @@ A PWA-compatible fitness tracker that allows users to create workout sessions, s
 ### Stage 5: Session Management
 
 #### 5.1 Convex Session Functions
-- [ ] `convex/sessions.ts`:
+- [x] `convex/sessions.ts`:
   - `listUserSessions` query
   - `getSessionById` query
   - `getSessionWithExercises` query (with progression map)
@@ -169,7 +211,7 @@ A PWA-compatible fitness tracker that allows users to create workout sessions, s
   - `updateSessionStatus` mutation
 
 #### 5.2 Convex Session Exercises Functions
-- [ ] `convex/sessionExercises.ts`:
+- [x] `convex/sessionExercises.ts`:
   - `addExercisesToSession` mutation
   - `updateExerciseProgression` mutation
   - `reorderExercises` mutation
@@ -281,7 +323,7 @@ A PWA-compatible fitness tracker that allows users to create workout sessions, s
 ### Stage 8: Session History & Stats
 
 #### 8.1 Convex History Functions
-- [ ] `convex/sessionLogs.ts`:
+- [x] `convex/sessionLogs.ts`:
   - `logCompletedSession` mutation
   - `getSessionHistory` query
   - `getSessionStats` query (aggregated stats)
@@ -512,24 +554,6 @@ A PWA-compatible fitness tracker that allows users to create workout sessions, s
   actualDuration: number
   exercisesCompleted: number
 }
-```
-
----
-
-## Getting Started
-
-```bash
-# Install dependencies
-npm install
-
-# Start Convex development server
-npx convex dev
-
-# Start SvelteKit development server
-npm run dev
-
-# Build for production
-npm run build
 ```
 
 ---
