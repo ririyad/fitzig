@@ -1,26 +1,16 @@
-import { createConvexAuthHandlers } from '@mmailaender/convex-auth-svelte/sveltekit/server';
-
-const { getAuthState } = createConvexAuthHandlers();
+import { PUBLIC_CONVEX_URL } from '$env/static/public';
 
 export async function load({ locals, url }: any) {
 	console.log('=== Debug Page Load ===');
 	console.log('URL:', url.pathname);
 
-	try {
-		const authState = await getAuthState(locals);
-		console.log('Auth state:', authState);
-		return {
-			authState,
-			timestamp: new Date().toISOString(),
-			mode: import.meta.env.MODE,
-			test: 'debug data'
-		};
-	} catch (e: any) {
-		console.error('Debug load error:', e);
-		return {
-			error: e.message,
-			stack: e.stack,
-			timestamp: new Date().toISOString()
-		};
-	}
+	const authCookie = locals.cookies.get('convex-auth-token');
+
+	return {
+		isAuthenticated: !!authCookie,
+		authCookie: authCookie?.value,
+		timestamp: new Date().toISOString(),
+		mode: import.meta.env.MODE,
+		convexUrl: PUBLIC_CONVEX_URL
+	};
 }
