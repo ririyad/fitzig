@@ -11,6 +11,25 @@
 	<div class="space-y-4">
 		<div class="card bg-base-200">
 			<div class="card-body">
+				<h2 class="card-title">Authentication Status</h2>
+				{#if data.isAuthenticated}
+					<div class="alert alert-success">
+						<span>✓ Authenticated</span>
+					</div>
+				{:else}
+					<div class="alert alert-info">
+						<span>✗ Not Authenticated</span>
+					</div>
+				{/if}
+				<div class="mt-4">
+					<p class="font-bold">Auth Cookie:</p>
+					<pre class="bg-base-300 p-4 rounded overflow-auto text-xs">{data.authCookie || '(no cookie)'}</pre>
+				</div>
+			</div>
+		</div>
+
+		<div class="card bg-base-200">
+			<div class="card-body">
 				<h2 class="card-title">Load Function Data</h2>
 				<pre class="bg-base-300 p-4 rounded overflow-auto">{JSON.stringify(data, null, 2)}</pre>
 			</div>
@@ -20,7 +39,7 @@
 			<div class="card-body">
 				<h2 class="card-title">Environment</h2>
 				<ul class="list-disc list-inside">
-					<li>Node version: {import.meta.env.MODE || 'unknown'}</li>
+					<li>Mode: {import.meta.env.MODE || 'unknown'}</li>
 					<li>Browser: {typeof window !== 'undefined' ? 'browser' : 'server'}</li>
 					<li>Timestamp: {new Date().toISOString()}</li>
 				</ul>
