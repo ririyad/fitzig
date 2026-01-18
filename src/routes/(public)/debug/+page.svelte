@@ -21,10 +21,6 @@
 						<span>✗ Not Authenticated</span>
 					</div>
 				{/if}
-				<div class="mt-4">
-					<p class="font-bold">Auth Cookie:</p>
-					<pre class="bg-base-300 p-4 rounded overflow-auto text-xs">{data.authCookie || '(no cookie)'}</pre>
-				</div>
 			</div>
 		</div>
 
@@ -39,9 +35,8 @@
 			<div class="card-body">
 				<h2 class="card-title">Environment</h2>
 				<ul class="list-disc list-inside">
-					<li>Mode: {import.meta.env.MODE || 'unknown'}</li>
-					<li>Browser: {typeof window !== 'undefined' ? 'browser' : 'server'}</li>
-					<li>Timestamp: {new Date().toISOString()}</li>
+					<li>Mode: {data.mode || 'unknown'}</li>
+					<li>Timestamp: {data.timestamp || 'unknown'}</li>
 				</ul>
 			</div>
 		</div>
