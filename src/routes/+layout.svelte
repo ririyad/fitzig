@@ -3,7 +3,17 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { setupConvexAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
 
-	let { children, data } = $props();
+	interface LayoutData {
+		authState?: any;
+	}
+
+	let { children, data }: { children: any; data: LayoutData } = $props();
+
+	$effect(() => {
+		console.log('=== Layout Client Effect ===');
+		console.log('Data from server:', data);
+		console.log('Auth state:', data.authState);
+	});
 
 	setupConvexAuth({ getServerState: () => data.authState });
 </script>
