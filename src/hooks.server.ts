@@ -5,7 +5,7 @@ import {
 	createRouteMatcher
 } from '@mmailaender/convex-auth-svelte/sveltekit/server';
 
-const isPublicRoute = createRouteMatcher(['/login', '/register', '/']);
+const isPublicRoute = createRouteMatcher(['/login', '/register', '/', '/debug']);
 
 const { handleAuth, isAuthenticated } = createConvexAuthHooks();
 
@@ -33,15 +33,24 @@ const requireAuth = async ({ event, resolve }: any) => {
 		return resolve(event);
 	} catch (e: any) {
 		console.error('Auth middleware error:', e);
-		console.error('Error type:', e?.name, e?.message, e?.code);
+		console.error('Error name:', e?.name);
+		console.error('Error message:', e?.message);
+		console.error('Error code:', e?.code);
+		console.error('Error status:', e?.status);
+		console.error('Full error:', JSON.stringify(e, null, 2));
 
 		if (e?.status === 302) {
 			console.log('Re-throwing redirect');
 			throw e;
 		}
 
-		console.log('Fallback redirect to login');
-		throw redirect(302, '/login');
+		if (e?.name === 'Redirect') {
+			console.log('Already a redirect, re-throwing');
+			throw e;
+		}
+
+		console.log('Non-redirect error, returning error page instead');
+		return new Response('Authentication error: ' + (e?.message || 'Unknown error'), { status: 500 });
 	}
 };
 
