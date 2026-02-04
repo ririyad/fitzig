@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Link } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -39,22 +40,24 @@ export default function HomeScreen() {
   );
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <ThemedView style={styles.hero}>
-        <ThemedText type="title" style={styles.heroTitle}>
-          Fitzig Workout
-        </ThemedText>
-        <ThemedText style={styles.heroSubtitle}>
-          Build a session, run the timer, and log your reps.
-        </ThemedText>
-        <Link href="/session/create" asChild>
-          <Pressable style={styles.primaryButton}>
-            <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-              Create New Session
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.container} contentInsetAdjustmentBehavior="never">
+        <ThemedView style={styles.hero}>
+          <View style={styles.heroRow}>
+            <ThemedText style={styles.eyebrow}>Today</ThemedText>
+            <ThemedText type="title" style={styles.heroTitle}>
+              Fitzig
             </ThemedText>
-          </Pressable>
-        </Link>
-      </ThemedView>
+            <ThemedText style={styles.heroSubtitle}>
+              Build a session, run the timer, and log your reps.
+            </ThemedText>
+          </View>
+          <Link href="/session/create" asChild>
+            <Pressable style={styles.primaryButton}>
+              <ThemedText style={styles.buttonText}>New</ThemedText>
+            </Pressable>
+          </Link>
+        </ThemedView>
 
       <ThemedView style={styles.section}>
         <ThemedText type="subtitle" style={styles.sectionTitle}>
@@ -115,28 +118,52 @@ export default function HomeScreen() {
           ))
         )}
       </ThemedView>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#0b0f1a',
+  },
   container: {
-    padding: 16,
-    gap: 20,
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 0,
+    gap: 10,
     backgroundColor: '#0b0f1a',
   },
   hero: {
-    gap: 10,
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: '#121826',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    backgroundColor: '#0e1422',
     borderWidth: 1,
-    borderColor: '#1f2937',
+    borderColor: '#1f2a3a',
+  },
+  heroRow: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    marginBottom: 10,
+  },
+  eyebrow: {
+    fontSize: 12,
+    lineHeight: 16,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    color: '#94a3b8',
   },
   heroTitle: {
+    fontSize: 20,
+    lineHeight: 24,
     color: '#ffffff',
   },
   heroSubtitle: {
+    fontSize: 13,
+    lineHeight: 18,
     color: '#cbd5f5',
   },
   sectionTitle: {
@@ -171,13 +198,15 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     backgroundColor: '#f97316',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
     alignSelf: 'flex-start',
   },
   buttonText: {
     color: '#ffffff',
+    fontSize: 14,
+    lineHeight: 18,
   },
   secondaryButton: {
     marginTop: 8,
