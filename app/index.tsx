@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Link } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -17,6 +17,8 @@ export default function HomeScreen() {
   const [templates, setTemplates] = useState<SessionTemplate[]>([]);
   const [runs, setRuns] = useState<SessionRun[]>([]);
   const [loading, setLoading] = useState(true);
+  const insets = useSafeAreaInsets();
+  const bottomPadding = 16 + Math.max(insets.bottom, 12);
 
   useFocusEffect(
     useCallback(() => {
@@ -41,7 +43,9 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.container} contentInsetAdjustmentBehavior="never">
+      <ScrollView
+        contentContainerStyle={[styles.container, { paddingBottom: bottomPadding }]}
+        contentInsetAdjustmentBehavior="never">
         <ThemedView style={styles.hero}>
           <View style={styles.heroRow}>
             <ThemedText style={styles.eyebrow}>Today</ThemedText>
@@ -54,70 +58,70 @@ export default function HomeScreen() {
           </View>
           <Link href="/session/create" asChild>
             <Pressable style={styles.primaryButton}>
-              <ThemedText style={styles.buttonText}>New</ThemedText>
+              <ThemedText style={styles.buttonText}>Create New Session</ThemedText>
             </Pressable>
           </Link>
         </ThemedView>
 
-      <ThemedView style={styles.section}>
-        <ThemedText type="subtitle" style={styles.sectionTitle}>
-          Saved Templates
-        </ThemedText>
-        {loading ? (
-          <ThemedText style={styles.bodyText}>Loading...</ThemedText>
-        ) : templates.length === 0 ? (
-          <ThemedText style={styles.bodyText}>No templates yet. Create your first session.</ThemedText>
-        ) : (
-          templates.map((template) => (
-            <View key={template.id} style={styles.card}>
-              <View style={styles.cardHeader}>
-                <ThemedText type="defaultSemiBold" style={styles.bodyText}>
-                  {template.name}
+        <ThemedView style={styles.section}>
+          <ThemedText type="subtitle" style={styles.sectionTitle}>
+            Saved Templates
+          </ThemedText>
+          {loading ? (
+            <ThemedText style={styles.bodyText}>Loading...</ThemedText>
+          ) : templates.length === 0 ? (
+            <ThemedText style={styles.bodyText}>No templates yet. Create your first session.</ThemedText>
+          ) : (
+            templates.map((template) => (
+              <View key={template.id} style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+                    {template.name}
+                  </ThemedText>
+                  <ThemedText style={styles.mutedText}>{template.setsCount} sets</ThemedText>
+                </View>
+                <ThemedText style={styles.mutedText}>
+                  {template.exercises.length} exercises · cooldown {template.cooldownSeconds}s
                 </ThemedText>
-                <ThemedText style={styles.mutedText}>{template.setsCount} sets</ThemedText>
+                <Link
+                  href={{
+                    pathname: '/session/run',
+                    params: { templateId: template.id },
+                  }}
+                  asChild>
+                  <Pressable style={styles.secondaryButton}>
+                    <ThemedText style={styles.secondaryButtonText}>Start Session</ThemedText>
+                  </Pressable>
+                </Link>
               </View>
-              <ThemedText style={styles.mutedText}>
-                {template.exercises.length} exercises · cooldown {template.cooldownSeconds}s
-              </ThemedText>
-              <Link
-                href={{
-                  pathname: '/session/run',
-                  params: { templateId: template.id },
-                }}
-                asChild>
-                <Pressable style={styles.secondaryButton}>
-                  <ThemedText style={styles.secondaryButtonText}>Start Session</ThemedText>
-                </Pressable>
-              </Link>
-            </View>
-          ))
-        )}
-      </ThemedView>
+            ))
+          )}
+        </ThemedView>
 
-      <ThemedView style={styles.section}>
-        <ThemedText type="subtitle" style={styles.sectionTitle}>
-          Past Sessions
-        </ThemedText>
-        {loading ? (
-          <ThemedText style={styles.bodyText}>Loading...</ThemedText>
-        ) : runs.length === 0 ? (
-          <ThemedText style={styles.bodyText}>No completed sessions yet.</ThemedText>
-        ) : (
-          runs.map((run) => (
-            <View key={run.id} style={styles.card}>
-              <ThemedText type="defaultSemiBold" style={styles.bodyText}>
-                {run.templateName}
-              </ThemedText>
-              <ThemedText style={styles.mutedText}>
-                Completed {formatDate(run.completedAt)}
-              </ThemedText>
-              <ThemedText style={styles.mutedText}>
-                {run.results.length} entries recorded
-              </ThemedText>
-            </View>
-          ))
-        )}
-      </ThemedView>
+        <ThemedView style={styles.section}>
+          <ThemedText type="subtitle" style={styles.sectionTitle}>
+            Past Sessions
+          </ThemedText>
+          {loading ? (
+            <ThemedText style={styles.bodyText}>Loading...</ThemedText>
+          ) : runs.length === 0 ? (
+            <ThemedText style={styles.bodyText}>No completed sessions yet.</ThemedText>
+          ) : (
+            runs.map((run) => (
+              <View key={run.id} style={styles.card}>
+                <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+                  {run.templateName}
+                </ThemedText>
+                <ThemedText style={styles.mutedText}>
+                  Completed {formatDate(run.completedAt)}
+                </ThemedText>
+                <ThemedText style={styles.mutedText}>
+                  {run.results.length} entries recorded
+                </ThemedText>
+              </View>
+            ))
+          )}
+        </ThemedView>
       </ScrollView>
     </SafeAreaView>
   );
@@ -201,7 +205,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 10,
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
   },
   buttonText: {
     color: '#ffffff',
