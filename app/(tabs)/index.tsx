@@ -1,98 +1,193 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useCallback, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Link } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { listSessionRuns, listSessionTemplates } from '@/lib/workout-storage';
+import { SessionRun, SessionTemplate } from '@/types/workout';
+
+function formatDate(timestamp: number) {
+  return new Date(timestamp).toLocaleString();
+}
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const [templates, setTemplates] = useState<SessionTemplate[]>([]);
+  const [runs, setRuns] = useState<SessionRun[]>([]);
+  const [loading, setLoading] = useState(true);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      const load = async () => {
+        const [nextTemplates, nextRuns] = await Promise.all([
+          listSessionTemplates(),
+          listSessionRuns(),
+        ]);
+        if (!active) return;
+        setTemplates(nextTemplates);
+        setRuns(nextRuns);
+        setLoading(false);
+      };
+
+      load();
+      return () => {
+        active = false;
+      };
+    }, [])
+  );
+
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <ThemedView style={styles.hero}>
+        <ThemedText type="title" style={styles.heroTitle}>
+          Fitzig Workout
         </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
+        <ThemedText style={styles.heroSubtitle}>
+          Build a session, run the timer, and log your reps.
         </ThemedText>
+        <Link href="/session/create" asChild>
+          <Pressable style={styles.primaryButton}>
+            <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+              Create New Session
+            </ThemedText>
+          </Pressable>
+        </Link>
       </ThemedView>
-    </ParallaxScrollView>
+
+      <ThemedView style={styles.section}>
+        <ThemedText type="subtitle" style={styles.sectionTitle}>
+          Saved Templates
+        </ThemedText>
+        {loading ? (
+          <ThemedText style={styles.bodyText}>Loading...</ThemedText>
+        ) : templates.length === 0 ? (
+          <ThemedText style={styles.bodyText}>No templates yet. Create your first session.</ThemedText>
+        ) : (
+          templates.map((template) => (
+            <View key={template.id} style={styles.card}>
+              <View style={styles.cardHeader}>
+                <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+                  {template.name}
+                </ThemedText>
+                <ThemedText style={styles.mutedText}>{template.setsCount} sets</ThemedText>
+              </View>
+              <ThemedText style={styles.mutedText}>
+                {template.exercises.length} exercises · cooldown {template.cooldownSeconds}s
+              </ThemedText>
+              <Link
+                href={{
+                  pathname: '/session/run',
+                  params: { templateId: template.id },
+                }}
+                asChild>
+                <Pressable style={styles.secondaryButton}>
+                  <ThemedText style={styles.secondaryButtonText}>Start Session</ThemedText>
+                </Pressable>
+              </Link>
+            </View>
+          ))
+        )}
+      </ThemedView>
+
+      <ThemedView style={styles.section}>
+        <ThemedText type="subtitle" style={styles.sectionTitle}>
+          Past Sessions
+        </ThemedText>
+        {loading ? (
+          <ThemedText style={styles.bodyText}>Loading...</ThemedText>
+        ) : runs.length === 0 ? (
+          <ThemedText style={styles.bodyText}>No completed sessions yet.</ThemedText>
+        ) : (
+          runs.map((run) => (
+            <View key={run.id} style={styles.card}>
+              <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+                {run.templateName}
+              </ThemedText>
+              <ThemedText style={styles.mutedText}>
+                Completed {formatDate(run.completedAt)}
+              </ThemedText>
+              <ThemedText style={styles.mutedText}>
+                {run.results.length} entries recorded
+              </ThemedText>
+            </View>
+          ))
+        )}
+      </ThemedView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    padding: 16,
+    gap: 20,
+    backgroundColor: '#0b0f1a',
+  },
+  hero: {
+    gap: 10,
+    padding: 16,
+    borderRadius: 16,
+    backgroundColor: '#121826',
+    borderWidth: 1,
+    borderColor: '#1f2937',
+  },
+  heroTitle: {
+    color: '#ffffff',
+  },
+  heroSubtitle: {
+    color: '#cbd5f5',
+  },
+  sectionTitle: {
+    color: '#f8fafc',
+  },
+  bodyText: {
+    color: '#f8fafc',
+  },
+  mutedText: {
+    color: '#94a3b8',
+  },
+  section: {
+    gap: 12,
+  },
+  card: {
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#1f2937',
+    backgroundColor: '#111827',
+    shadowColor: '#000000',
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+    gap: 6,
+  },
+  cardHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  primaryButton: {
+    backgroundColor: '#f97316',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 999,
+    alignSelf: 'flex-start',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  buttonText: {
+    color: '#ffffff',
+  },
+  secondaryButton: {
+    marginTop: 8,
+    backgroundColor: '#1f2937',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    alignSelf: 'flex-start',
+  },
+  secondaryButtonText: {
+    color: '#ffffff',
   },
 });

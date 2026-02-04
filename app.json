@@ -43,6 +43,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "8ffae3d6-17d3-493d-930f-c0d9f54e2b50"
+      }
+    },
+    "owner": "craftonics"
   }
 }
