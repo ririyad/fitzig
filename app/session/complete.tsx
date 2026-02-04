@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
@@ -87,50 +88,56 @@ export default function CompleteSessionScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <ThemedText type="title" style={styles.title}>
-        Session Complete
-      </ThemedText>
-      <ThemedText type="subtitle" style={styles.subtitle}>
-        {template.name}
-      </ThemedText>
-
-      {Array.from({ length: template.setsCount }).map((_, setIndex) => (
-        <ThemedView key={setIndex} style={styles.setCard}>
-          <ThemedText type="defaultSemiBold" style={styles.bodyText}>
-            Set {setIndex + 1}
-          </ThemedText>
-          {template.exercises.map((exercise) => {
-            const key = `${setIndex}_${exercise.exerciseId}`;
-            return (
-              <View key={key} style={styles.exerciseRow}>
-                <ThemedText style={styles.bodyText}>
-                  {exerciseNames[exercise.exerciseId] ?? exercise.exerciseId}
-                </ThemedText>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Count"
-                  value={counts[key] ?? ''}
-                  onChangeText={(value) => updateCount(key, value)}
-                  keyboardType="number-pad"
-                  placeholderTextColor="#94a3b8"
-                />
-              </View>
-            );
-          })}
-        </ThemedView>
-      ))}
-
-      <Pressable style={styles.primaryButton} onPress={handleSave}>
-        <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-          Save Results
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <ThemedText type="title" style={styles.title}>
+          Session Complete
         </ThemedText>
-      </Pressable>
-    </ScrollView>
+        <ThemedText type="subtitle" style={styles.subtitle}>
+          {template.name}
+        </ThemedText>
+
+        {Array.from({ length: template.setsCount }).map((_, setIndex) => (
+          <ThemedView key={setIndex} style={styles.setCard}>
+            <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+              Set {setIndex + 1}
+            </ThemedText>
+            {template.exercises.map((exercise) => {
+              const key = `${setIndex}_${exercise.exerciseId}`;
+              return (
+                <View key={key} style={styles.exerciseRow}>
+                  <ThemedText style={styles.bodyText}>
+                    {exerciseNames[exercise.exerciseId] ?? exercise.exerciseId}
+                  </ThemedText>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Count"
+                    value={counts[key] ?? ''}
+                    onChangeText={(value) => updateCount(key, value)}
+                    keyboardType="number-pad"
+                    placeholderTextColor="#94a3b8"
+                  />
+                </View>
+              );
+            })}
+          </ThemedView>
+        ))}
+
+        <Pressable style={styles.primaryButton} onPress={handleSave}>
+          <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+            Save Results
+          </ThemedText>
+        </Pressable>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#0b0f1a',
+  },
   container: {
     padding: 16,
     gap: 16,

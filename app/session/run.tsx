@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
@@ -132,46 +133,52 @@ export default function RunSessionScreen() {
   const displaySeconds = status === 'idle' ? previewDuration : remainingSeconds;
 
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.title}>
-        {template.name}
-      </ThemedText>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <ThemedView style={styles.container}>
+        <ThemedText type="title" style={styles.title}>
+          {template.name}
+        </ThemedText>
 
-      <View style={styles.statusCard}>
-        <ThemedText type="subtitle" style={styles.bodyText}>
-          Set {currentSetIndex + 1} of {template.setsCount}
-        </ThemedText>
-        <ThemedText style={styles.bodyText}>{statusLabel}</ThemedText>
-        <ThemedText type="title" style={styles.timerText}>
-          {formatSeconds(displaySeconds)}s
-        </ThemedText>
-        {status !== 'cooldown' && status !== 'idle' && (
-          <ThemedText type="defaultSemiBold" style={styles.bodyText}>
-            {currentExerciseName}
+        <View style={styles.statusCard}>
+          <ThemedText type="subtitle" style={styles.bodyText}>
+            Set {currentSetIndex + 1} of {template.setsCount}
           </ThemedText>
-        )}
-        {status === 'idle' && (
-          <ThemedText style={styles.bodyText}>First exercise: {currentExerciseName}</ThemedText>
-        )}
-      </View>
-
-      <ThemedView style={styles.details}>
-        <ThemedText style={styles.bodyText}>
-          {template.exercises.length} exercises · {template.cooldownSeconds}s cooldown
-        </ThemedText>
-        {status === 'idle' && (
-          <Pressable style={styles.primaryButton} onPress={handleStart}>
-            <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-              Start Session
+          <ThemedText style={styles.bodyText}>{statusLabel}</ThemedText>
+          <ThemedText type="title" style={styles.timerText}>
+            {formatSeconds(displaySeconds)}s
+          </ThemedText>
+          {status !== 'cooldown' && status !== 'idle' && (
+            <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+              {currentExerciseName}
             </ThemedText>
-          </Pressable>
-        )}
+          )}
+          {status === 'idle' && (
+            <ThemedText style={styles.bodyText}>First exercise: {currentExerciseName}</ThemedText>
+          )}
+        </View>
+
+        <ThemedView style={styles.details}>
+          <ThemedText style={styles.bodyText}>
+            {template.exercises.length} exercises · {template.cooldownSeconds}s cooldown
+          </ThemedText>
+          {status === 'idle' && (
+            <Pressable style={styles.primaryButton} onPress={handleStart}>
+              <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                Start Session
+              </ThemedText>
+            </Pressable>
+          )}
+        </ThemedView>
       </ThemedView>
-    </ThemedView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#0b0f1a',
+  },
   container: {
     flex: 1,
     padding: 16,

@@ -26,6 +26,9 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="session/create" options={{ headerShown: false }} />
+        <Stack.Screen name="session/run" options={{ headerShown: false }} />
+        <Stack.Screen name="session/complete" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

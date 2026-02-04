@@ -7,6 +7,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
@@ -87,10 +88,11 @@ export default function CreateSessionScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <ThemedText type="title" style={styles.title}>
-        Create Session
-      </ThemedText>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <ThemedText type="title" style={styles.title}>
+          Create Session
+        </ThemedText>
 
       <ThemedView style={styles.section}>
         <ThemedText type="subtitle" style={styles.subtitle}>
@@ -179,19 +181,24 @@ export default function CreateSessionScreen() {
         </View>
       </ThemedView>
 
-      <Pressable
-        style={[styles.primaryButton, !canSave && styles.primaryButtonDisabled]}
-        onPress={handleSave}
-        disabled={!canSave}>
-        <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-          Save Session
-        </ThemedText>
-      </Pressable>
-    </ScrollView>
+        <Pressable
+          style={[styles.primaryButton, !canSave && styles.primaryButtonDisabled]}
+          onPress={handleSave}
+          disabled={!canSave}>
+          <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+            Save Session
+          </ThemedText>
+        </Pressable>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#0b0f1a',
+  },
   container: {
     padding: 16,
     gap: 16,

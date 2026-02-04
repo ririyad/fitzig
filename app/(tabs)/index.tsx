@@ -130,8 +130,8 @@ const styles = StyleSheet.create({
   },
   container: {
     paddingHorizontal: 16,
-    paddingTop: 4,
-    paddingBottom: 0,
+    paddingTop: 8,
+    paddingBottom: 60,
     gap: 10,
     backgroundColor: '#0b0f1a',
   },
