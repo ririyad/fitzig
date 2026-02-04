@@ -1,50 +1,64 @@
-# Welcome to your Expo app 👋
+# Fitzig
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A minimal, fitness‑oriented workout tracker built with React Native + Expo Router.
 
-## Get started
+## What This App Does (Current)
+- Create workout session templates (name, sets, cooldown, up to 5 exercises)
+- Run timed sessions with exercise + cooldown sequencing
+- Record per‑set counts after completion
+- Persist templates and completed sessions locally
+- Modern dark UI with compact header + Manrope typography
 
+## What’s Been Implemented
+- **Home**: templates list + past sessions list
+- **Create Session**: form to build a template with exercise durations
+- **Run Session**: timer and cooldown flow
+- **Complete Session**: log counts per exercise/set
+- **Local Storage**: AsyncStorage-backed persistence
+- **Styling**: dark theme, tighter spacing, premium typography
+
+## What Still Needs To Be Done
+- Update `package-lock.json` by running `npm install` (network required)
+- Optional: pause/stop during running session
+- Optional: session history detail view
+- Optional: edit/delete templates
+- Optional: analytics (volume, PRs, streaks)
+- Optional: cloud backup / Google sign‑in
+
+## Tech Stack
+- Expo + React Native
+- Expo Router (file-based routing)
+- AsyncStorage (local persistence)
+- Manrope fonts (`@expo-google-fonts/manrope`)
+
+## Project Structure (Key Files)
+- `app/(tabs)/index.tsx`: Home screen
+- `app/session/create.tsx`: Create session screen
+- `app/session/run.tsx`: Timer flow
+- `app/session/complete.tsx`: Completion logging
+- `lib/workout-storage.ts`: Storage layer
+- `constants/exercises.ts`: Exercise list
+- `types/workout.ts`: Types
+
+## Getting Started
 1. Install dependencies
 
    ```bash
    npm install
    ```
 
-2. Start the app
+2. Start Expo
 
    ```bash
-   npx expo start
+   npm run start
    ```
 
-In the output, you'll find options to open the app in a
+3. Run on Android
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+   ```bash
+   npm run android
+   ```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Notes
+- Data is stored locally only.
+- Fonts load at app start; if fonts fail to load, check `@expo-google-fonts/manrope` and network access.
