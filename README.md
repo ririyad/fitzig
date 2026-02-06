@@ -75,3 +75,18 @@ A minimal, fitness‑oriented workout tracker built with React Native + Expo Rou
   - `/Users/rashedulriyad/Documents/codespace/apps/fitzig/components/app-gradient-background.tsx`
   - `/Users/rashedulriyad/Documents/codespace/apps/fitzig/components/gradient-hero.tsx`
 - Cards, forms, and tab bar intentionally remain solid for contrast and legibility.
+
+## APK Release Automation
+- GitHub Actions workflow: `/Users/rashedulriyad/Documents/codespace/apps/fitzig/.github/workflows/release-apk.yml`
+- EAS profile config: `/Users/rashedulriyad/Documents/codespace/apps/fitzig/eas.json`
+- Required repository secret: `EXPO_TOKEN`
+
+### Default Trigger
+- Push a tag that starts with `v` (example: `v1.0.1`) to build APK and publish a GitHub Release asset.
+- Manual trigger is also available via `workflow_dispatch`.
+
+### Quick Usage
+```bash
+git tag v1.0.1
+git push origin v1.0.1
+```

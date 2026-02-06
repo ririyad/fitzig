@@ -45,21 +45,23 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <ThemeProvider value={navigationTheme}>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            animation: 'slide_from_right',
-            contentStyle: { backgroundColor: APP_BACKGROUND },
-            statusBarStyle: 'light',
-            navigationBarColor: APP_BACKGROUND,
-            freezeOnBlur: false,
-          }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="settings" />
-          <Stack.Screen name="session/create" />
-          <Stack.Screen name="session/run" />
-          <Stack.Screen name="session/complete" />
-        </Stack>
+        <View style={styles.appBackground}>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              animation: 'fade',
+              contentStyle: { backgroundColor: APP_BACKGROUND },
+              statusBarStyle: 'light',
+              navigationBarColor: APP_BACKGROUND,
+              freezeOnBlur: false,
+            }}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="settings" />
+            <Stack.Screen name="session/create" />
+            <Stack.Screen name="session/run" />
+            <Stack.Screen name="session/complete" />
+          </Stack>
+        </View>
         <StatusBar style="light" />
       </ThemeProvider>
     </SafeAreaProvider>

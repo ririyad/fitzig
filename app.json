@@ -3,10 +3,11 @@
     "name": "fitzig",
     "slug": "fitzig",
     "version": "1.0.0",
+    "backgroundColor": "#070d1a",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "fitzig",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
