@@ -14,6 +14,19 @@ const APP_BACKGROUND = UI.bgFallback;
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const activeTheme = colorScheme === 'dark' ? DarkTheme : DefaultTheme;
+  const navigationTheme = {
+    ...activeTheme,
+    dark: true,
+    colors: {
+      ...activeTheme.colors,
+      primary: UI.accent,
+      text: UI.text,
+      border: UI.border,
+      notification: UI.accentStrong,
+      background: APP_BACKGROUND,
+      card: APP_BACKGROUND,
+    },
+  };
   const [fontsLoaded] = useFonts({
     Manrope_400Regular,
     Manrope_600SemiBold,
@@ -31,15 +44,7 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-      <ThemeProvider
-        value={{
-          ...activeTheme,
-          colors: {
-            ...activeTheme.colors,
-            background: APP_BACKGROUND,
-            card: APP_BACKGROUND,
-          },
-        }}>
+      <ThemeProvider value={navigationTheme}>
         <Stack
           screenOptions={{
             headerShown: false,
@@ -47,7 +52,7 @@ export default function RootLayout() {
             contentStyle: { backgroundColor: APP_BACKGROUND },
             statusBarStyle: 'light',
             navigationBarColor: APP_BACKGROUND,
-            freezeOnBlur: true,
+            freezeOnBlur: false,
           }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="settings" />
