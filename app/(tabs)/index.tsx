@@ -134,9 +134,8 @@ export default function HomeScreen() {
           </View>
 
           <GradientHero variant="home" style={styles.hero}>
-            <ThemedText style={styles.eyebrow}>Training Dashboard</ThemedText>
-            <ThemedText type="title" style={styles.heroTitle}>
-              Build. Run. Improve.
+            <ThemedText type="title" style={styles.heroTitle} allowFontScaling={false}>
+              Fitzig
             </ThemedText>
             <ThemedText style={styles.heroSubtitle}>
               Create structured sessions, keep momentum, and track your volume over time.
@@ -314,17 +313,11 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     fontFamily: 'Manrope_600SemiBold',
   },
-  eyebrow: {
-    color: UI.accentStrong,
-    fontSize: 12,
-    lineHeight: 16,
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-  },
   heroTitle: {
     color: UI.text,
-    fontSize: 30,
-    lineHeight: 34,
+    fontSize: 32,
+    lineHeight: 40,
+    marginBottom: 2,
   },
   heroSubtitle: {
     color: UI.textMuted,
