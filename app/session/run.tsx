@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, AppState, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Animated, AppState, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
@@ -7,6 +7,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 
 import { AppGradientBackground } from '@/components/app-gradient-background';
 import { GradientHero } from '@/components/gradient-hero';
+import { AppGradientVariant } from '@/constants/gradients';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { EXERCISES } from '@/constants/exercises';
@@ -104,6 +105,9 @@ export default function RunSessionScreen() {
   const hasWarnedStorageRef = useRef(false);
   const isCompletingRef = useRef(false);
   const appStateRef = useRef(AppState.currentState);
+  const allowNavigationRef = useRef(false);
+  const timerScale = useRef(new Animated.Value(1)).current;
+  const timerOpacity = useRef(new Animated.Value(1)).current;
 
   const safeStorageWarning = useCallback(() => {
     if (hasWarnedStorageRef.current) return;
@@ -194,6 +198,7 @@ export default function RunSessionScreen() {
     }
 
     void triggerHaptic('complete');
+    allowNavigationRef.current = true;
 
     router.replace({
       pathname: '/session/complete',
@@ -210,6 +215,7 @@ export default function RunSessionScreen() {
     } catch {
       safeStorageWarning();
     }
+    allowNavigationRef.current = true;
     router.replace('/');
   }, [safeStorageWarning]);
 
@@ -411,6 +417,7 @@ export default function RunSessionScreen() {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (event) => {
+      if (allowNavigationRef.current) return;
       if (!hasActiveSession) return;
       event.preventDefault();
       confirmDiscardAndLeave();
@@ -448,6 +455,31 @@ export default function RunSessionScreen() {
     return getCurrentRemainingSeconds(runtime, clock);
   }, [countdownRemaining, runtime, previewDuration, clock]);
 
+  useEffect(() => {
+    const scaleIn = Animated.timing(timerScale, {
+      toValue: 1.035,
+      duration: 120,
+      useNativeDriver: true,
+    });
+    const scaleOut = Animated.timing(timerScale, {
+      toValue: 1,
+      duration: 190,
+      useNativeDriver: true,
+    });
+    const fadeIn = Animated.timing(timerOpacity, {
+      toValue: 1,
+      duration: 120,
+      useNativeDriver: true,
+    });
+    const fadeOut = Animated.timing(timerOpacity, {
+      toValue: 0.92,
+      duration: 190,
+      useNativeDriver: true,
+    });
+
+    Animated.parallel([Animated.sequence([scaleIn, scaleOut]), Animated.sequence([fadeOut, fadeIn])]).start();
+  }, [displaySeconds, timerOpacity, timerScale]);
+
   const statusLabel = useMemo(() => {
     if (countdownRemaining > 0) return 'Countdown';
     if (runtime.status === 'paused') return 'Paused';
@@ -460,6 +492,10 @@ export default function RunSessionScreen() {
   const activeBlock = template
     ? runtime.currentSetIndex * template.exercises.length + runtime.currentExerciseIndex + 1
     : 0;
+  const isCooldownPhase =
+    runtime.status === 'cooldown' || (runtime.status === 'paused' && runtime.pausedPhase === 'cooldown');
+  const runGradientVariant: AppGradientVariant =
+    runtime.startedAt === null ? 'run' : isCooldownPhase ? 'runCooldown' : 'runActive';
 
   const startPhaseWithOptionalCountdown = useCallback(
     (targetStatus: RunningStatus) => {
@@ -569,7 +605,7 @@ export default function RunSessionScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <AppGradientBackground variant="run">
+      <AppGradientBackground variant={runGradientVariant}>
         <View style={styles.container}>
           <GradientHero variant="run" style={styles.headerCard}>
             <ThemedText style={styles.eyebrow}>Session In Progress</ThemedText>
@@ -601,14 +637,23 @@ export default function RunSessionScreen() {
                   ? 'Cooldown Timer'
                   : 'Active Timer'}
             </ThemedText>
-            <ThemedText
-              type="title"
-              style={[styles.timerText, isCompactPreview && styles.timerTextCompact]}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.7}>
-              {formatSeconds(displaySeconds)}s
-            </ThemedText>
+            <Animated.View
+              style={[
+                styles.timerValueWrap,
+                {
+                  transform: [{ scale: timerScale }],
+                  opacity: timerOpacity,
+                },
+              ]}>
+              <ThemedText
+                type="title"
+                style={[styles.timerText, isCompactPreview && styles.timerTextCompact]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}>
+                {formatSeconds(displaySeconds)}s
+              </ThemedText>
+            </Animated.View>
 
             {countdownRemaining > 0 ? (
               <ThemedText style={styles.mutedText}>
@@ -764,6 +809,10 @@ const styles = StyleSheet.create({
   timerTextCompact: {
     fontSize: 50,
     lineHeight: 58,
+  },
+  timerValueWrap: {
+    width: '100%',
+    alignItems: 'center',
   },
   controlsRow: {
     flexDirection: 'row',

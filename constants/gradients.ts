@@ -4,6 +4,8 @@ export type AppGradientVariant =
   | 'report'
   | 'create'
   | 'run'
+  | 'runActive'
+  | 'runCooldown'
   | 'complete'
   | 'settings';
 
@@ -72,6 +74,24 @@ const gradientSpecs: Record<AppGradientVariant, GradientSpec> = {
     backgroundStart: BASE_BACKGROUND_START,
     backgroundEnd: BASE_BACKGROUND_END,
     heroColors: ['#0f2036', '#17334d', '#1c4a60'],
+    heroStart: BASE_HERO_START,
+    heroEnd: BASE_HERO_END,
+    heroOverlayOpacity: 0.04,
+  },
+  runActive: {
+    backgroundColors: ['#050a15', '#0d2238', '#1a4a63'],
+    backgroundStart: BASE_BACKGROUND_START,
+    backgroundEnd: BASE_BACKGROUND_END,
+    heroColors: ['#10253c', '#1a3c57', '#245a72'],
+    heroStart: BASE_HERO_START,
+    heroEnd: BASE_HERO_END,
+    heroOverlayOpacity: 0.04,
+  },
+  runCooldown: {
+    backgroundColors: ['#061018', '#0d2a3b', '#216174'],
+    backgroundStart: BASE_BACKGROUND_START,
+    backgroundEnd: BASE_BACKGROUND_END,
+    heroColors: ['#143144', '#23546b', '#2d7186'],
     heroStart: BASE_HERO_START,
     heroEnd: BASE_HERO_END,
     heroOverlayOpacity: 0.04,
