@@ -3,6 +3,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Link } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -120,6 +121,15 @@ export default function HomeScreen() {
         style={styles.scrollView}
         contentContainerStyle={[styles.container, { paddingBottom: bottomPadding }]}
         contentInsetAdjustmentBehavior="never">
+        <View style={styles.utilityRow}>
+          <Link href="../settings" asChild>
+            <Pressable style={styles.utilityButton}>
+              <Ionicons name="settings-outline" size={18} color={UI.textMuted} />
+              <ThemedText style={styles.utilityButtonText}>Settings</ThemedText>
+            </Pressable>
+          </Link>
+        </View>
+
         <ThemedView style={styles.hero}>
           <ThemedText style={styles.eyebrow}>Training Dashboard</ThemedText>
           <ThemedText type="title" style={styles.heroTitle}>
@@ -128,18 +138,11 @@ export default function HomeScreen() {
           <ThemedText style={styles.heroSubtitle}>
             Create structured sessions, keep momentum, and track your volume over time.
           </ThemedText>
-          <View style={styles.heroActions}>
-            <Link href="/session/create" asChild>
-              <Pressable style={styles.primaryButton}>
-                <ThemedText style={styles.primaryButtonText}>Create New Session</ThemedText>
-              </Pressable>
-            </Link>
-            <Link href="../settings" asChild>
-              <Pressable style={styles.secondaryHeroButton}>
-                <ThemedText style={styles.secondaryHeroButtonText}>Settings</ThemedText>
-              </Pressable>
-            </Link>
-          </View>
+          <Link href="/session/create" asChild>
+            <Pressable style={styles.primaryButton}>
+              <ThemedText style={styles.primaryButtonText}>Create New Session</ThemedText>
+            </Pressable>
+          </Link>
         </ThemedView>
 
         {resumeCard && (
@@ -291,6 +294,26 @@ const styles = StyleSheet.create({
     backgroundColor: UI.bgElevated,
     gap: 8,
   },
+  utilityRow: {
+    alignItems: 'flex-end',
+  },
+  utilityButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: UI.border,
+    backgroundColor: UI.bgElevated,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  utilityButtonText: {
+    color: UI.textMuted,
+    fontSize: 12,
+    lineHeight: 16,
+    fontFamily: 'Manrope_600SemiBold',
+  },
   eyebrow: {
     color: UI.accentStrong,
     fontSize: 12,
@@ -317,28 +340,6 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: '#ffffff',
-    fontFamily: 'Manrope_700Bold',
-    fontSize: 14,
-    lineHeight: 18,
-  },
-  heroActions: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 6,
-  },
-  secondaryHeroButton: {
-    marginTop: 6,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: UI.borderSoft,
-    backgroundColor: UI.cardStrong,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-  },
-  secondaryHeroButtonText: {
-    color: UI.textSoft,
     fontFamily: 'Manrope_700Bold',
     fontSize: 14,
     lineHeight: 18,
