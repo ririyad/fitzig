@@ -10,6 +10,9 @@
       "android": {
         "buildType": "apk"
       }
+    },
+    "production": {
+      "extends": "release"
     }
   }
 }
