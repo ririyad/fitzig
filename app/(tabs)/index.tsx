@@ -1,22 +1,36 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Link } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { listSessionRuns, listSessionTemplates } from '@/lib/workout-storage';
-import { SessionRun, SessionTemplate } from '@/types/workout';
+import {
+  clearActiveSessionSnapshot,
+  getActiveSessionSnapshot,
+  getSessionTemplateById,
+  listSessionRuns,
+  listSessionTemplates,
+} from '@/lib/workout-storage';
+import { ActiveSessionSnapshot, SessionRun, SessionTemplate } from '@/types/workout';
 import { UI } from '@/constants/ui';
 
 function formatDate(timestamp: number) {
   return new Date(timestamp).toLocaleString();
 }
 
+const SNAPSHOT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
+type ResumeCard = {
+  snapshot: ActiveSessionSnapshot;
+  templateName: string;
+};
+
 export default function HomeScreen() {
   const [templates, setTemplates] = useState<SessionTemplate[]>([]);
   const [runs, setRuns] = useState<SessionRun[]>([]);
+  const [resumeCard, setResumeCard] = useState<ResumeCard | null>(null);
   const [loading, setLoading] = useState(true);
   const insets = useSafeAreaInsets();
   const bottomPadding = 22 + Math.max(insets.bottom, 12);
@@ -25,13 +39,41 @@ export default function HomeScreen() {
     useCallback(() => {
       let active = true;
       const load = async () => {
-        const [nextTemplates, nextRuns] = await Promise.all([
+        const [nextTemplates, nextRuns, activeSnapshot] = await Promise.all([
           listSessionTemplates(),
           listSessionRuns(),
+          getActiveSessionSnapshot(),
         ]);
         if (!active) return;
+
+        let nextResumeCard: ResumeCard | null = null;
+        if (activeSnapshot) {
+          const snapshotAge = Date.now() - activeSnapshot.updatedAt;
+          if (snapshotAge <= SNAPSHOT_MAX_AGE_MS) {
+            const snapshotTemplate =
+              nextTemplates.find((template) => template.id === activeSnapshot.templateId) ??
+              (await getSessionTemplateById(activeSnapshot.templateId));
+            if (!active) return;
+
+            if (snapshotTemplate) {
+              nextResumeCard = {
+                snapshot: activeSnapshot,
+                templateName: snapshotTemplate.name,
+              };
+            } else {
+              await clearActiveSessionSnapshot().catch(() => undefined);
+              if (active) {
+                Alert.alert('Session Unavailable', 'Saved in-progress session could not be restored.');
+              }
+            }
+          } else {
+            await clearActiveSessionSnapshot().catch(() => undefined);
+          }
+        }
+
         setTemplates(nextTemplates);
         setRuns(nextRuns);
+        setResumeCard(nextResumeCard);
         setLoading(false);
       };
 
@@ -63,6 +105,15 @@ export default function HomeScreen() {
     };
   }, [templates, runs]);
 
+  const handleDiscardResume = useCallback(async () => {
+    try {
+      await clearActiveSessionSnapshot();
+      setResumeCard(null);
+    } catch {
+      Alert.alert('Storage Warning', 'Unable to clear saved session snapshot right now.');
+    }
+  }, []);
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView
@@ -77,12 +128,48 @@ export default function HomeScreen() {
           <ThemedText style={styles.heroSubtitle}>
             Create structured sessions, keep momentum, and track your volume over time.
           </ThemedText>
-          <Link href="/session/create" asChild>
-            <Pressable style={styles.primaryButton}>
-              <ThemedText style={styles.primaryButtonText}>Create New Session</ThemedText>
-            </Pressable>
-          </Link>
+          <View style={styles.heroActions}>
+            <Link href="/session/create" asChild>
+              <Pressable style={styles.primaryButton}>
+                <ThemedText style={styles.primaryButtonText}>Create New Session</ThemedText>
+              </Pressable>
+            </Link>
+            <Link href="../settings" asChild>
+              <Pressable style={styles.secondaryHeroButton}>
+                <ThemedText style={styles.secondaryHeroButtonText}>Settings</ThemedText>
+              </Pressable>
+            </Link>
+          </View>
         </ThemedView>
+
+        {resumeCard && (
+          <ThemedView style={styles.resumeCard}>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>
+              Resume Session
+            </ThemedText>
+            <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+              {resumeCard.templateName}
+            </ThemedText>
+            <ThemedText style={styles.mutedText}>
+              Last active {formatDate(resumeCard.snapshot.updatedAt)}
+            </ThemedText>
+            <View style={styles.resumeActions}>
+              <Link
+                href={{
+                  pathname: '/session/run',
+                  params: { templateId: resumeCard.snapshot.templateId, resume: '1' },
+                }}
+                asChild>
+                <Pressable style={styles.resumeButton}>
+                  <ThemedText style={styles.resumeButtonText}>Resume</ThemedText>
+                </Pressable>
+              </Link>
+              <Pressable style={styles.discardButton} onPress={() => void handleDiscardResume()}>
+                <ThemedText style={styles.discardButtonText}>Discard</ThemedText>
+              </Pressable>
+            </View>
+          </ThemedView>
+        )}
 
         <View style={styles.metricsGrid}>
           <ThemedView style={styles.metricCard}>
@@ -233,6 +320,63 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope_700Bold',
     fontSize: 14,
     lineHeight: 18,
+  },
+  heroActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 6,
+  },
+  secondaryHeroButton: {
+    marginTop: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: UI.borderSoft,
+    backgroundColor: UI.cardStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  secondaryHeroButtonText: {
+    color: UI.textSoft,
+    fontFamily: 'Manrope_700Bold',
+    fontSize: 14,
+    lineHeight: 18,
+  },
+  resumeCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: UI.border,
+    backgroundColor: UI.bgElevated,
+    padding: 12,
+    gap: 8,
+  },
+  resumeActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 4,
+  },
+  resumeButton: {
+    borderRadius: 10,
+    backgroundColor: UI.accent,
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+  },
+  resumeButtonText: {
+    color: '#ffffff',
+    fontFamily: 'Manrope_600SemiBold',
+  },
+  discardButton: {
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: UI.borderSoft,
+    backgroundColor: UI.cardStrong,
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+  },
+  discardButtonText: {
+    color: UI.textSoft,
+    fontFamily: 'Manrope_600SemiBold',
   },
   metricsGrid: {
     flexDirection: 'row',
