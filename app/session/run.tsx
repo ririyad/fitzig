@@ -5,9 +5,10 @@ import { router, useLocalSearchParams } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { EXERCISES } from '@/constants/exercises';
+import { UI } from '@/constants/ui';
 import { getSessionTemplateById } from '@/lib/workout-storage';
 import { SessionTemplate } from '@/types/workout';
-import { EXERCISES } from '@/constants/exercises';
 
 const formatSeconds = (value: number) => value.toString().padStart(2, '0');
 
@@ -44,6 +45,14 @@ export default function RunSessionScreen() {
     return EXERCISES.find((entry) => entry.id === currentExercise.exerciseId)?.name ??
       currentExercise.exerciseId;
   }, [currentExercise]);
+
+  const nextExerciseName = useMemo(() => {
+    if (!template || !template.exercises.length) return '';
+    const nextIndex = currentExerciseIndex + 1;
+    const nextExercise = template.exercises[nextIndex] ?? template.exercises[0];
+    if (!nextExercise) return '';
+    return EXERCISES.find((entry) => entry.id === nextExercise.exerciseId)?.name ?? nextExercise.exerciseId;
+  }, [template, currentExerciseIndex]);
 
   useEffect(() => {
     if (status === 'idle') return;
@@ -137,19 +146,38 @@ export default function RunSessionScreen() {
   const statusLabel = status === 'idle' ? 'Ready' : status === 'cooldown' ? 'Cooldown' : 'Exercise';
   const displaySeconds = status === 'idle' ? previewDuration : remainingSeconds;
   const isCompactPreview = displaySeconds >= 100;
+  const totalBlocks = template.setsCount * template.exercises.length;
+  const activeBlock = currentSetIndex * template.exercises.length + currentExerciseIndex + 1;
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ThemedView style={styles.container}>
-        <ThemedText type="title" style={styles.title}>
-          {template.name}
-        </ThemedText>
-
-        <View style={styles.statusCard}>
-          <ThemedText type="subtitle" style={styles.bodyText}>
-            Set {currentSetIndex + 1} of {template.setsCount}
+        <ThemedView style={styles.headerCard}>
+          <ThemedText style={styles.eyebrow}>Session In Progress</ThemedText>
+          <ThemedText type="title" style={styles.title}>
+            {template.name}
           </ThemedText>
-          <ThemedText style={styles.bodyText}>{statusLabel}</ThemedText>
+          <View style={styles.metaRow}>
+            <View style={styles.metaChip}>
+              <ThemedText style={styles.metaChipText}>
+                Set {currentSetIndex + 1}/{template.setsCount}
+              </ThemedText>
+            </View>
+            <View style={styles.metaChip}>
+              <ThemedText style={styles.metaChipText}>
+                Block {Math.min(activeBlock, totalBlocks)}/{totalBlocks}
+              </ThemedText>
+            </View>
+            <View style={styles.metaChip}>
+              <ThemedText style={styles.metaChipText}>{statusLabel}</ThemedText>
+            </View>
+          </View>
+        </ThemedView>
+
+        <View style={styles.timerCard}>
+          <ThemedText style={styles.timerLabel}>
+            {status === 'cooldown' ? 'Cooldown Timer' : 'Active Timer'}
+          </ThemedText>
           <ThemedText
             type="title"
             style={[styles.timerText, isCompactPreview && styles.timerTextCompact]}
@@ -158,9 +186,11 @@ export default function RunSessionScreen() {
             minimumFontScale={0.7}>
             {formatSeconds(displaySeconds)}s
           </ThemedText>
-          {status !== 'cooldown' && status !== 'idle' && (
+          {status === 'cooldown' ? (
+            <ThemedText style={styles.mutedText}>Up next: {nextExerciseName}</ThemedText>
+          ) : (
             <ThemedText type="defaultSemiBold" style={styles.bodyText}>
-              {currentExerciseName}
+              {currentExerciseName || 'Get Ready'}
             </ThemedText>
           )}
           {status === 'cooldown' && (
@@ -171,21 +201,18 @@ export default function RunSessionScreen() {
             </Pressable>
           )}
           {status === 'idle' && (
-            <ThemedText style={styles.bodyText}>First exercise: {currentExerciseName}</ThemedText>
-          )}
-        </View>
-
-        <ThemedView style={styles.details}>
-          <ThemedText style={styles.bodyText}>
-            {template.exercises.length} exercises · {template.cooldownSeconds}s cooldown
-          </ThemedText>
-          {status === 'idle' && (
             <Pressable style={styles.primaryButton} onPress={handleStart}>
               <ThemedText type="defaultSemiBold" style={styles.buttonText}>
                 Start Session
               </ThemedText>
             </Pressable>
           )}
+        </View>
+
+        <ThemedView style={styles.footerCard}>
+          <ThemedText style={styles.mutedText}>
+            {template.exercises.length} exercises configured · {template.cooldownSeconds}s cooldown
+          </ThemedText>
         </ThemedView>
       </ThemedView>
     </SafeAreaView>
@@ -195,73 +222,126 @@ export default function RunSessionScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0b0f1a',
+    backgroundColor: UI.bg,
   },
   container: {
     flex: 1,
-    padding: 16,
-    gap: 16,
-    backgroundColor: '#0b0f1a',
-  },
-  title: {
-    color: '#f8fafc',
-  },
-  bodyText: {
-    color: '#f8fafc',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    gap: 14,
+    backgroundColor: UI.bg,
   },
   centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0b0f1a',
+    backgroundColor: UI.bg,
   },
-  statusCard: {
-    paddingVertical: 22,
-    paddingHorizontal: 18,
-    borderRadius: 16,
+  headerCard: {
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#1f2937',
-    backgroundColor: '#111827',
-    shadowColor: '#000000',
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-    gap: 12,
+    borderColor: UI.border,
+    backgroundColor: UI.bgElevated,
+    padding: 16,
+    gap: 8,
+  },
+  eyebrow: {
+    color: UI.accentStrong,
+    fontSize: 12,
+    lineHeight: 16,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  title: {
+    color: UI.text,
+    fontSize: 28,
+    lineHeight: 34,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  metaChip: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: UI.borderSoft,
+    backgroundColor: UI.bgMuted,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  metaChipText: {
+    color: UI.textSoft,
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  timerCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: UI.border,
+    backgroundColor: UI.card,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
     alignItems: 'center',
+    gap: 10,
+  },
+  timerLabel: {
+    color: UI.textMuted,
+    fontSize: 13,
+    lineHeight: 18,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
   },
   timerText: {
-    fontSize: 52,
-    lineHeight: 62,
+    fontSize: 58,
+    lineHeight: 66,
     fontFamily: 'Manrope_700Bold',
-    color: '#f8fafc',
-    paddingHorizontal: 6,
+    color: UI.text,
     textAlign: 'center',
+    paddingHorizontal: 8,
   },
   timerTextCompact: {
-    fontSize: 46,
-    lineHeight: 54,
+    fontSize: 50,
+    lineHeight: 58,
   },
-  details: {
-    gap: 12,
+  footerCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: UI.border,
+    backgroundColor: UI.bgElevated,
+    padding: 12,
+    alignItems: 'center',
   },
   primaryButton: {
-    backgroundColor: '#f97316',
+    marginTop: 8,
+    backgroundColor: UI.accent,
     paddingVertical: 12,
+    paddingHorizontal: 18,
     borderRadius: 12,
+    minWidth: 190,
     alignItems: 'center',
   },
   buttonText: {
     color: '#ffffff',
   },
   secondaryButton: {
-    marginTop: 4,
-    backgroundColor: '#1f2937',
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: UI.borderSoft,
+    backgroundColor: UI.cardStrong,
     paddingVertical: 10,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     borderRadius: 10,
   },
   secondaryButtonText: {
-    color: '#f8fafc',
+    color: UI.textSoft,
+  },
+  bodyText: {
+    color: UI.text,
+    textAlign: 'center',
+  },
+  mutedText: {
+    color: UI.textMuted,
+    textAlign: 'center',
   },
 });

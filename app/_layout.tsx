@@ -7,8 +7,9 @@ import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-c
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { UI } from '@/constants/ui';
 
-const APP_BACKGROUND = '#0b0f1a';
+const APP_BACKGROUND = UI.bg;
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -45,11 +46,10 @@ export default function RootLayout() {
             animation: 'slide_from_right',
             contentStyle: { backgroundColor: APP_BACKGROUND },
             statusBarStyle: 'light',
-            statusBarColor: APP_BACKGROUND,
             navigationBarColor: APP_BACKGROUND,
             freezeOnBlur: true,
           }}>
-          <Stack.Screen name="index" />
+          <Stack.Screen name="(tabs)" />
           <Stack.Screen name="session/create" />
           <Stack.Screen name="session/run" />
           <Stack.Screen name="session/complete" />

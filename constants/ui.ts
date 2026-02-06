@@ -1,0 +1,16 @@
+export const UI = {
+  bg: '#070d1a',
+  bgElevated: '#0e1628',
+  bgMuted: '#121d33',
+  card: '#131f36',
+  cardStrong: '#182744',
+  border: '#273756',
+  borderSoft: '#34486d',
+  text: '#f8fafc',
+  textMuted: '#97a7c5',
+  textSoft: '#c7d4ef',
+  accent: '#f97316',
+  accentStrong: '#fb923c',
+  success: '#22c55e',
+  danger: '#ef4444',
+} as const;
