@@ -9,7 +9,7 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { UI } from '@/constants/ui';
 
-const APP_BACKGROUND = UI.bg;
+const APP_BACKGROUND = UI.bgFallback;
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();

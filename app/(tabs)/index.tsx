@@ -5,6 +5,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
+import { AppGradientBackground } from '@/components/app-gradient-background';
+import { GradientHero } from '@/components/gradient-hero';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import {
@@ -117,156 +119,158 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[styles.container, { paddingBottom: bottomPadding }]}
-        contentInsetAdjustmentBehavior="never">
-        <View style={styles.utilityRow}>
-          <Link href="../settings" asChild>
-            <Pressable style={styles.utilityButton}>
-              <Ionicons name="settings-outline" size={18} color={UI.textMuted} />
-              <ThemedText style={styles.utilityButtonText}>Settings</ThemedText>
-            </Pressable>
-          </Link>
-        </View>
-
-        <ThemedView style={styles.hero}>
-          <ThemedText style={styles.eyebrow}>Training Dashboard</ThemedText>
-          <ThemedText type="title" style={styles.heroTitle}>
-            Build. Run. Improve.
-          </ThemedText>
-          <ThemedText style={styles.heroSubtitle}>
-            Create structured sessions, keep momentum, and track your volume over time.
-          </ThemedText>
-          <Link href="/session/create" asChild>
-            <Pressable style={styles.primaryButton}>
-              <ThemedText style={styles.primaryButtonText}>Create New Session</ThemedText>
-            </Pressable>
-          </Link>
-        </ThemedView>
-
-        {resumeCard && (
-          <ThemedView style={styles.resumeCard}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>
-              Resume Session
-            </ThemedText>
-            <ThemedText type="defaultSemiBold" style={styles.bodyText}>
-              {resumeCard.templateName}
-            </ThemedText>
-            <ThemedText style={styles.mutedText}>
-              Last active {formatDate(resumeCard.snapshot.updatedAt)}
-            </ThemedText>
-            <View style={styles.resumeActions}>
-              <Link
-                href={{
-                  pathname: '/session/run',
-                  params: { templateId: resumeCard.snapshot.templateId, resume: '1' },
-                }}
-                asChild>
-                <Pressable style={styles.resumeButton}>
-                  <ThemedText style={styles.resumeButtonText}>Resume</ThemedText>
-                </Pressable>
-              </Link>
-              <Pressable style={styles.discardButton} onPress={() => void handleDiscardResume()}>
-                <ThemedText style={styles.discardButtonText}>Discard</ThemedText>
+      <AppGradientBackground variant="home">
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[styles.container, { paddingBottom: bottomPadding }]}
+          contentInsetAdjustmentBehavior="never">
+          <View style={styles.utilityRow}>
+            <Link href="../settings" asChild>
+              <Pressable style={styles.utilityButton}>
+                <Ionicons name="settings-outline" size={18} color={UI.textMuted} />
+                <ThemedText style={styles.utilityButtonText}>Settings</ThemedText>
               </Pressable>
-            </View>
-          </ThemedView>
-        )}
-
-        <View style={styles.metricsGrid}>
-          <ThemedView style={styles.metricCard}>
-            <ThemedText style={styles.metricLabel}>Templates</ThemedText>
-            <ThemedText type="title" style={styles.metricValue}>
-              {stats.templateCount}
-            </ThemedText>
-          </ThemedView>
-          <ThemedView style={styles.metricCard}>
-            <ThemedText style={styles.metricLabel}>Total Sessions</ThemedText>
-            <ThemedText type="title" style={styles.metricValue}>
-              {stats.runCount}
-            </ThemedText>
-          </ThemedView>
-          <ThemedView style={styles.metricCard}>
-            <ThemedText style={styles.metricLabel}>This Week</ThemedText>
-            <ThemedText type="title" style={styles.metricValue}>
-              {stats.runsThisWeek}
-            </ThemedText>
-          </ThemedView>
-          <ThemedView style={styles.metricCard}>
-            <ThemedText style={styles.metricLabel}>Logged Reps</ThemedText>
-            <ThemedText type="title" style={styles.metricValue}>
-              {stats.totalReps}
-            </ThemedText>
-          </ThemedView>
-        </View>
-
-        <ThemedView style={styles.sectionCard}>
-          <View style={styles.sectionHeader}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>
-              Saved Templates
-            </ThemedText>
-            <ThemedText style={styles.sectionMeta}>{stats.templateCount}</ThemedText>
+            </Link>
           </View>
-          {loading ? (
-            <ThemedText style={styles.bodyText}>Loading templates...</ThemedText>
-          ) : templates.length === 0 ? (
-            <ThemedText style={styles.mutedText}>
-              No templates yet. Create your first session to get started.
+
+          <GradientHero variant="home" style={styles.hero}>
+            <ThemedText style={styles.eyebrow}>Training Dashboard</ThemedText>
+            <ThemedText type="title" style={styles.heroTitle}>
+              Build. Run. Improve.
             </ThemedText>
-          ) : (
-            templates.map((template) => (
-              <View key={template.id} style={styles.itemCard}>
-                <View style={styles.itemHeader}>
-                  <ThemedText type="defaultSemiBold" style={styles.bodyText}>
-                    {template.name}
-                  </ThemedText>
-                  <View style={styles.badge}>
-                    <ThemedText style={styles.badgeText}>{template.setsCount} sets</ThemedText>
-                  </View>
-                </View>
-                <ThemedText style={styles.mutedText}>
-                  {template.exercises.length} exercises · cooldown {template.cooldownSeconds}s
-                </ThemedText>
+            <ThemedText style={styles.heroSubtitle}>
+              Create structured sessions, keep momentum, and track your volume over time.
+            </ThemedText>
+            <Link href="/session/create" asChild>
+              <Pressable style={styles.primaryButton}>
+                <ThemedText style={styles.primaryButtonText}>Create New Session</ThemedText>
+              </Pressable>
+            </Link>
+          </GradientHero>
+
+          {resumeCard && (
+            <ThemedView style={styles.resumeCard}>
+              <ThemedText type="subtitle" style={styles.sectionTitle}>
+                Resume Session
+              </ThemedText>
+              <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+                {resumeCard.templateName}
+              </ThemedText>
+              <ThemedText style={styles.mutedText}>
+                Last active {formatDate(resumeCard.snapshot.updatedAt)}
+              </ThemedText>
+              <View style={styles.resumeActions}>
                 <Link
                   href={{
                     pathname: '/session/run',
-                    params: { templateId: template.id },
+                    params: { templateId: resumeCard.snapshot.templateId, resume: '1' },
                   }}
                   asChild>
-                  <Pressable style={styles.secondaryButton}>
-                    <ThemedText style={styles.secondaryButtonText}>Start Session</ThemedText>
+                  <Pressable style={styles.resumeButton}>
+                    <ThemedText style={styles.resumeButtonText}>Resume</ThemedText>
                   </Pressable>
                 </Link>
+                <Pressable style={styles.discardButton} onPress={() => void handleDiscardResume()}>
+                  <ThemedText style={styles.discardButtonText}>Discard</ThemedText>
+                </Pressable>
               </View>
-            ))
+            </ThemedView>
           )}
-        </ThemedView>
 
-        <ThemedView style={styles.sectionCard}>
-          <View style={styles.sectionHeader}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>
-              Recent Sessions
-            </ThemedText>
-            <ThemedText style={styles.sectionMeta}>{stats.runCount}</ThemedText>
+          <View style={styles.metricsGrid}>
+            <ThemedView style={styles.metricCard}>
+              <ThemedText style={styles.metricLabel}>Templates</ThemedText>
+              <ThemedText type="title" style={styles.metricValue}>
+                {stats.templateCount}
+              </ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.metricCard}>
+              <ThemedText style={styles.metricLabel}>Total Sessions</ThemedText>
+              <ThemedText type="title" style={styles.metricValue}>
+                {stats.runCount}
+              </ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.metricCard}>
+              <ThemedText style={styles.metricLabel}>This Week</ThemedText>
+              <ThemedText type="title" style={styles.metricValue}>
+                {stats.runsThisWeek}
+              </ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.metricCard}>
+              <ThemedText style={styles.metricLabel}>Logged Reps</ThemedText>
+              <ThemedText type="title" style={styles.metricValue}>
+                {stats.totalReps}
+              </ThemedText>
+            </ThemedView>
           </View>
-          {loading ? (
-            <ThemedText style={styles.bodyText}>Loading sessions...</ThemedText>
-          ) : runs.length === 0 ? (
-            <ThemedText style={styles.mutedText}>No completed sessions yet.</ThemedText>
-          ) : (
-            runs.slice(0, 6).map((run) => (
-              <View key={run.id} style={styles.itemCard}>
-                <ThemedText type="defaultSemiBold" style={styles.bodyText}>
-                  {run.templateName}
-                </ThemedText>
-                <ThemedText style={styles.mutedText}>Completed {formatDate(run.completedAt)}</ThemedText>
-                <ThemedText style={styles.mutedText}>{run.results.length} entries recorded</ThemedText>
-              </View>
-            ))
-          )}
-        </ThemedView>
-      </ScrollView>
+
+          <ThemedView style={styles.sectionCard}>
+            <View style={styles.sectionHeader}>
+              <ThemedText type="subtitle" style={styles.sectionTitle}>
+                Saved Templates
+              </ThemedText>
+              <ThemedText style={styles.sectionMeta}>{stats.templateCount}</ThemedText>
+            </View>
+            {loading ? (
+              <ThemedText style={styles.bodyText}>Loading templates...</ThemedText>
+            ) : templates.length === 0 ? (
+              <ThemedText style={styles.mutedText}>
+                No templates yet. Create your first session to get started.
+              </ThemedText>
+            ) : (
+              templates.map((template) => (
+                <View key={template.id} style={styles.itemCard}>
+                  <View style={styles.itemHeader}>
+                    <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+                      {template.name}
+                    </ThemedText>
+                    <View style={styles.badge}>
+                      <ThemedText style={styles.badgeText}>{template.setsCount} sets</ThemedText>
+                    </View>
+                  </View>
+                  <ThemedText style={styles.mutedText}>
+                    {template.exercises.length} exercises · cooldown {template.cooldownSeconds}s
+                  </ThemedText>
+                  <Link
+                    href={{
+                      pathname: '/session/run',
+                      params: { templateId: template.id },
+                    }}
+                    asChild>
+                    <Pressable style={styles.secondaryButton}>
+                      <ThemedText style={styles.secondaryButtonText}>Start Session</ThemedText>
+                    </Pressable>
+                  </Link>
+                </View>
+              ))
+            )}
+          </ThemedView>
+
+          <ThemedView style={styles.sectionCard}>
+            <View style={styles.sectionHeader}>
+              <ThemedText type="subtitle" style={styles.sectionTitle}>
+                Recent Sessions
+              </ThemedText>
+              <ThemedText style={styles.sectionMeta}>{stats.runCount}</ThemedText>
+            </View>
+            {loading ? (
+              <ThemedText style={styles.bodyText}>Loading sessions...</ThemedText>
+            ) : runs.length === 0 ? (
+              <ThemedText style={styles.mutedText}>No completed sessions yet.</ThemedText>
+            ) : (
+              runs.slice(0, 6).map((run) => (
+                <View key={run.id} style={styles.itemCard}>
+                  <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+                    {run.templateName}
+                  </ThemedText>
+                  <ThemedText style={styles.mutedText}>Completed {formatDate(run.completedAt)}</ThemedText>
+                  <ThemedText style={styles.mutedText}>{run.results.length} entries recorded</ThemedText>
+                </View>
+              ))
+            )}
+          </ThemedView>
+        </ScrollView>
+      </AppGradientBackground>
     </SafeAreaView>
   );
 }
@@ -274,24 +278,20 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: UI.bg,
+    backgroundColor: UI.bgFallback,
   },
   scrollView: {
-    backgroundColor: UI.bg,
+    backgroundColor: 'transparent',
   },
   container: {
     flexGrow: 1,
     paddingHorizontal: 16,
     paddingTop: 12,
     gap: 14,
-    backgroundColor: UI.bg,
+    backgroundColor: 'transparent',
   },
   hero: {
     padding: 16,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: UI.border,
-    backgroundColor: UI.bgElevated,
     gap: 8,
   },
   utilityRow: {

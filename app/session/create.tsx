@@ -10,6 +10,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
+import { AppGradientBackground } from '@/components/app-gradient-background';
+import { GradientHero } from '@/components/gradient-hero';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { EXERCISES } from '@/constants/exercises';
@@ -90,122 +92,126 @@ export default function CreateSessionScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
-        <ThemedView style={styles.hero}>
-          <ThemedText style={styles.eyebrow}>Session Builder</ThemedText>
-          <ThemedText type="title" style={styles.title}>
-            Create New Session
-          </ThemedText>
-          <ThemedText style={styles.subtitle}>
-            Configure rounds, cooldown, and exercises for a focused workout flow.
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedView style={styles.section}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            Session Details
-          </ThemedText>
-          <TextInput
-            style={styles.input}
-            placeholder="Session name"
-            placeholderTextColor={UI.textMuted}
-            value={name}
-            onChangeText={setName}
-          />
-          <View style={styles.row}>
-            <View style={styles.inputGroup}>
-              <ThemedText style={styles.label}>Sets</ThemedText>
-              <TextInput
-                style={styles.input}
-                value={setsCount}
-                onChangeText={setSetsCount}
-                keyboardType="number-pad"
-                placeholderTextColor={UI.textMuted}
-              />
-            </View>
-            <View style={styles.inputGroup}>
-              <ThemedText style={styles.label}>Cooldown (sec)</ThemedText>
-              <TextInput
-                style={styles.input}
-                value={cooldownSeconds}
-                onChangeText={setCooldownSeconds}
-                keyboardType="number-pad"
-                placeholderTextColor={UI.textMuted}
-              />
-            </View>
-          </View>
-        </ThemedView>
-
-        <ThemedView style={styles.section}>
-          <View style={styles.sectionRow}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>
-              Selected Exercises
+      <AppGradientBackground variant="create">
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
+          <GradientHero variant="create" style={styles.hero}>
+            <ThemedText style={styles.eyebrow}>Session Builder</ThemedText>
+            <ThemedText type="title" style={styles.title}>
+              Create New Session
             </ThemedText>
-            <View style={styles.counterBadge}>
-              <ThemedText style={styles.counterText}>
-                {selectedExercises.length}/{MAX_EXERCISES}
-              </ThemedText>
+            <ThemedText style={styles.subtitle}>
+              Configure rounds, cooldown, and exercises for a focused workout flow.
+            </ThemedText>
+          </GradientHero>
+
+          <ThemedView style={styles.section}>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>
+              Session Details
+            </ThemedText>
+            <TextInput
+              style={styles.input}
+              placeholder="Session name"
+              placeholderTextColor={UI.textMuted}
+              value={name}
+              onChangeText={setName}
+            />
+            <View style={styles.row}>
+              <View style={styles.inputGroup}>
+                <ThemedText style={styles.label}>Sets</ThemedText>
+                <TextInput
+                  style={styles.input}
+                  value={setsCount}
+                  onChangeText={setSetsCount}
+                  keyboardType="number-pad"
+                  placeholderTextColor={UI.textMuted}
+                />
+              </View>
+              <View style={styles.inputGroup}>
+                <ThemedText style={styles.label}>Cooldown (sec)</ThemedText>
+                <TextInput
+                  style={styles.input}
+                  value={cooldownSeconds}
+                  onChangeText={setCooldownSeconds}
+                  keyboardType="number-pad"
+                  placeholderTextColor={UI.textMuted}
+                />
+              </View>
             </View>
-          </View>
-          {selectedExercises.length === 0 ? (
-            <ThemedText style={styles.mutedText}>No exercises selected yet.</ThemedText>
-          ) : (
-            selectedExercises.map((item, index) => {
-              const exercise = EXERCISES.find((entry) => entry.id === item.exerciseId);
-              return (
-                <View key={item.exerciseId} style={styles.exerciseRow}>
-                  <View style={styles.exerciseHeader}>
-                    <ThemedText type="defaultSemiBold" style={styles.bodyText}>
-                      {index + 1}. {exercise?.name ?? item.exerciseId}
-                    </ThemedText>
-                    <Pressable style={styles.removeButton} onPress={() => removeExercise(item.exerciseId)}>
-                      <ThemedText style={styles.removeButtonText}>Remove</ThemedText>
-                    </Pressable>
-                  </View>
-                  <View style={styles.durationRow}>
-                    <ThemedText style={styles.label}>Duration (sec)</ThemedText>
-                    <TextInput
-                      style={[styles.input, styles.durationInput]}
-                      value={item.durationSeconds}
-                      onChangeText={(value) => updateDuration(item.exerciseId, value)}
-                      keyboardType="number-pad"
-                      placeholderTextColor={UI.textMuted}
-                    />
-                  </View>
-                </View>
-              );
-            })
-          )}
-        </ThemedView>
+          </ThemedView>
 
-        <ThemedView style={styles.section}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            Add Exercises
-          </ThemedText>
-          <ThemedText style={styles.mutedText}>
-            Tap to add. You can include up to {MAX_EXERCISES} exercises.
-          </ThemedText>
-          <View style={styles.exerciseList}>
-            {availableExercises.map((exercise) => (
-              <Pressable
-                key={exercise.id}
-                style={styles.exerciseChip}
-                onPress={() => addExercise(exercise.id)}>
-                <ThemedText style={styles.chipText}>{exercise.name}</ThemedText>
-              </Pressable>
-            ))}
-          </View>
-        </ThemedView>
+          <ThemedView style={styles.section}>
+            <View style={styles.sectionRow}>
+              <ThemedText type="subtitle" style={styles.sectionTitle}>
+                Selected Exercises
+              </ThemedText>
+              <View style={styles.counterBadge}>
+                <ThemedText style={styles.counterText}>
+                  {selectedExercises.length}/{MAX_EXERCISES}
+                </ThemedText>
+              </View>
+            </View>
+            {selectedExercises.length === 0 ? (
+              <ThemedText style={styles.mutedText}>No exercises selected yet.</ThemedText>
+            ) : (
+              selectedExercises.map((item, index) => {
+                const exercise = EXERCISES.find((entry) => entry.id === item.exerciseId);
+                return (
+                  <View key={item.exerciseId} style={styles.exerciseRow}>
+                    <View style={styles.exerciseHeader}>
+                      <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+                        {index + 1}. {exercise?.name ?? item.exerciseId}
+                      </ThemedText>
+                      <Pressable
+                        style={styles.removeButton}
+                        onPress={() => removeExercise(item.exerciseId)}>
+                        <ThemedText style={styles.removeButtonText}>Remove</ThemedText>
+                      </Pressable>
+                    </View>
+                    <View style={styles.durationRow}>
+                      <ThemedText style={styles.label}>Duration (sec)</ThemedText>
+                      <TextInput
+                        style={[styles.input, styles.durationInput]}
+                        value={item.durationSeconds}
+                        onChangeText={(value) => updateDuration(item.exerciseId, value)}
+                        keyboardType="number-pad"
+                        placeholderTextColor={UI.textMuted}
+                      />
+                    </View>
+                  </View>
+                );
+              })
+            )}
+          </ThemedView>
 
-        <Pressable
-          style={[styles.primaryButton, !canSave && styles.primaryButtonDisabled]}
-          onPress={handleSave}
-          disabled={!canSave}>
-          <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-            Save Session
-          </ThemedText>
-        </Pressable>
-      </ScrollView>
+          <ThemedView style={styles.section}>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>
+              Add Exercises
+            </ThemedText>
+            <ThemedText style={styles.mutedText}>
+              Tap to add. You can include up to {MAX_EXERCISES} exercises.
+            </ThemedText>
+            <View style={styles.exerciseList}>
+              {availableExercises.map((exercise) => (
+                <Pressable
+                  key={exercise.id}
+                  style={styles.exerciseChip}
+                  onPress={() => addExercise(exercise.id)}>
+                  <ThemedText style={styles.chipText}>{exercise.name}</ThemedText>
+                </Pressable>
+              ))}
+            </View>
+          </ThemedView>
+
+          <Pressable
+            style={[styles.primaryButton, !canSave && styles.primaryButtonDisabled]}
+            onPress={handleSave}
+            disabled={!canSave}>
+            <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+              Save Session
+            </ThemedText>
+          </Pressable>
+        </ScrollView>
+      </AppGradientBackground>
     </SafeAreaView>
   );
 }
@@ -213,10 +219,10 @@ export default function CreateSessionScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: UI.bg,
+    backgroundColor: UI.bgFallback,
   },
   scrollView: {
-    backgroundColor: UI.bg,
+    backgroundColor: 'transparent',
   },
   container: {
     flexGrow: 1,
@@ -224,13 +230,9 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 24,
     gap: 14,
-    backgroundColor: UI.bg,
+    backgroundColor: 'transparent',
   },
   hero: {
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: UI.border,
-    backgroundColor: UI.bgElevated,
     padding: 16,
     gap: 6,
   },

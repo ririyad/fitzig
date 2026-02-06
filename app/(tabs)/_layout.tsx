@@ -3,14 +3,14 @@ import { Tabs } from 'expo-router';
 
 import { UI } from '@/constants/ui';
 
-const TAB_BACKGROUND = UI.bgElevated;
+const TAB_BACKGROUND = UI.tabFallback;
 
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        sceneStyle: { backgroundColor: TAB_BACKGROUND },
+        sceneStyle: { backgroundColor: 'transparent' },
         tabBarActiveTintColor: UI.accent,
         tabBarInactiveTintColor: UI.textMuted,
         tabBarStyle: {

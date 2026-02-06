@@ -5,6 +5,8 @@ import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
 import { router, useLocalSearchParams } from 'expo-router';
 
+import { AppGradientBackground } from '@/components/app-gradient-background';
+import { GradientHero } from '@/components/gradient-hero';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { EXERCISES } from '@/constants/exercises';
@@ -536,21 +538,29 @@ export default function RunSessionScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.safeArea, styles.centered]} edges={['top']}>
-        <ThemedText style={styles.bodyText}>Loading session...</ThemedText>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <AppGradientBackground variant="run">
+          <View style={styles.centered}>
+            <ThemedText style={styles.bodyText}>Loading session...</ThemedText>
+          </View>
+        </AppGradientBackground>
       </SafeAreaView>
     );
   }
 
   if (!template || errorMessage) {
     return (
-      <SafeAreaView style={[styles.safeArea, styles.centered]} edges={['top']}>
-        <ThemedText style={styles.bodyText}>{errorMessage ?? 'Session unavailable.'}</ThemedText>
-        <Pressable style={styles.secondaryButton} onPress={() => router.replace('/')}>
-          <ThemedText type="defaultSemiBold" style={styles.secondaryButtonText}>
-            Back To Home
-          </ThemedText>
-        </Pressable>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <AppGradientBackground variant="run">
+          <View style={styles.centered}>
+            <ThemedText style={styles.bodyText}>{errorMessage ?? 'Session unavailable.'}</ThemedText>
+            <Pressable style={styles.secondaryButton} onPress={() => router.replace('/')}>
+              <ThemedText type="defaultSemiBold" style={styles.secondaryButtonText}>
+                Back To Home
+              </ThemedText>
+            </Pressable>
+          </View>
+        </AppGradientBackground>
       </SafeAreaView>
     );
   }
@@ -559,113 +569,115 @@ export default function RunSessionScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.headerCard}>
-          <ThemedText style={styles.eyebrow}>Session In Progress</ThemedText>
-          <ThemedText type="title" style={styles.title}>
-            {template.name}
-          </ThemedText>
-          <View style={styles.metaRow}>
-            <View style={styles.metaChip}>
-              <ThemedText style={styles.metaChipText}>
-                Set {runtime.currentSetIndex + 1}/{template.setsCount}
-              </ThemedText>
-            </View>
-            <View style={styles.metaChip}>
-              <ThemedText style={styles.metaChipText}>
-                Block {Math.min(activeBlock, totalBlocks)}/{totalBlocks}
-              </ThemedText>
-            </View>
-            <View style={styles.metaChip}>
-              <ThemedText style={styles.metaChipText}>{statusLabel}</ThemedText>
-            </View>
-          </View>
-        </ThemedView>
-
-        <View style={styles.timerCard}>
-          <ThemedText style={styles.timerLabel}>
-            {countdownRemaining > 0
-              ? 'Starting In'
-              : runtime.status === 'cooldown'
-                ? 'Cooldown Timer'
-                : 'Active Timer'}
-          </ThemedText>
-          <ThemedText
-            type="title"
-            style={[styles.timerText, isCompactPreview && styles.timerTextCompact]}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.7}>
-            {formatSeconds(displaySeconds)}s
-          </ThemedText>
-
-          {countdownRemaining > 0 ? (
-            <ThemedText style={styles.mutedText}>
-              {runtime.status === 'paused' ? 'Resuming session...' : 'Preparing first exercise...'}
+      <AppGradientBackground variant="run">
+        <View style={styles.container}>
+          <GradientHero variant="run" style={styles.headerCard}>
+            <ThemedText style={styles.eyebrow}>Session In Progress</ThemedText>
+            <ThemedText type="title" style={styles.title}>
+              {template.name}
             </ThemedText>
-          ) : runtime.status === 'cooldown' ? (
-            <ThemedText style={styles.mutedText}>Up next: {nextExerciseName}</ThemedText>
-          ) : (
-            <ThemedText type="defaultSemiBold" style={styles.bodyText}>
-              {currentExerciseName || 'Get Ready'}
-            </ThemedText>
-          )}
+            <View style={styles.metaRow}>
+              <View style={styles.metaChip}>
+                <ThemedText style={styles.metaChipText}>
+                  Set {runtime.currentSetIndex + 1}/{template.setsCount}
+                </ThemedText>
+              </View>
+              <View style={styles.metaChip}>
+                <ThemedText style={styles.metaChipText}>
+                  Block {Math.min(activeBlock, totalBlocks)}/{totalBlocks}
+                </ThemedText>
+              </View>
+              <View style={styles.metaChip}>
+                <ThemedText style={styles.metaChipText}>{statusLabel}</ThemedText>
+              </View>
+            </View>
+          </GradientHero>
 
-          <View style={styles.controlsRow}>
-            {runtime.status === 'idle' && runtime.startedAt === null && (
-              <Pressable style={styles.primaryButton} onPress={handleStart}>
-                <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-                  Start Session
+          <View style={styles.timerCard}>
+            <ThemedText style={styles.timerLabel}>
+              {countdownRemaining > 0
+                ? 'Starting In'
+                : runtime.status === 'cooldown'
+                  ? 'Cooldown Timer'
+                  : 'Active Timer'}
+            </ThemedText>
+            <ThemedText
+              type="title"
+              style={[styles.timerText, isCompactPreview && styles.timerTextCompact]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}>
+              {formatSeconds(displaySeconds)}s
+            </ThemedText>
+
+            {countdownRemaining > 0 ? (
+              <ThemedText style={styles.mutedText}>
+                {runtime.status === 'paused' ? 'Resuming session...' : 'Preparing first exercise...'}
+              </ThemedText>
+            ) : runtime.status === 'cooldown' ? (
+              <ThemedText style={styles.mutedText}>Up next: {nextExerciseName}</ThemedText>
+            ) : (
+              <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+                {currentExerciseName || 'Get Ready'}
+              </ThemedText>
+            )}
+
+            <View style={styles.controlsRow}>
+              {runtime.status === 'idle' && runtime.startedAt === null && (
+                <Pressable style={styles.primaryButton} onPress={handleStart}>
+                  <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+                    Start Session
+                  </ThemedText>
+                </Pressable>
+              )}
+
+              {isRunningStatus(runtime.status) && countdownRemaining === 0 && (
+                <>
+                  <Pressable style={styles.secondaryButton} onPress={handlePause}>
+                    <ThemedText type="defaultSemiBold" style={styles.secondaryButtonText}>
+                      Pause
+                    </ThemedText>
+                  </Pressable>
+                  <Pressable style={styles.stopButton} onPress={handleStop}>
+                    <ThemedText type="defaultSemiBold" style={styles.stopButtonText}>
+                      Stop
+                    </ThemedText>
+                  </Pressable>
+                </>
+              )}
+
+              {runtime.status === 'paused' && countdownRemaining === 0 && (
+                <>
+                  <Pressable style={styles.secondaryButton} onPress={handleResume}>
+                    <ThemedText type="defaultSemiBold" style={styles.secondaryButtonText}>
+                      Resume
+                    </ThemedText>
+                  </Pressable>
+                  <Pressable style={styles.stopButton} onPress={handleStop}>
+                    <ThemedText type="defaultSemiBold" style={styles.stopButtonText}>
+                      Stop
+                    </ThemedText>
+                  </Pressable>
+                </>
+              )}
+            </View>
+
+            {runtime.status === 'cooldown' && countdownRemaining === 0 && (
+              <Pressable style={styles.ghostButton} onPress={handleSkipCooldown}>
+                <ThemedText type="defaultSemiBold" style={styles.ghostButtonText}>
+                  Skip Cooldown
                 </ThemedText>
               </Pressable>
             )}
-
-            {isRunningStatus(runtime.status) && countdownRemaining === 0 && (
-              <>
-                <Pressable style={styles.secondaryButton} onPress={handlePause}>
-                  <ThemedText type="defaultSemiBold" style={styles.secondaryButtonText}>
-                    Pause
-                  </ThemedText>
-                </Pressable>
-                <Pressable style={styles.stopButton} onPress={handleStop}>
-                  <ThemedText type="defaultSemiBold" style={styles.stopButtonText}>
-                    Stop
-                  </ThemedText>
-                </Pressable>
-              </>
-            )}
-
-            {runtime.status === 'paused' && countdownRemaining === 0 && (
-              <>
-                <Pressable style={styles.secondaryButton} onPress={handleResume}>
-                  <ThemedText type="defaultSemiBold" style={styles.secondaryButtonText}>
-                    Resume
-                  </ThemedText>
-                </Pressable>
-                <Pressable style={styles.stopButton} onPress={handleStop}>
-                  <ThemedText type="defaultSemiBold" style={styles.stopButtonText}>
-                    Stop
-                  </ThemedText>
-                </Pressable>
-              </>
-            )}
           </View>
 
-          {runtime.status === 'cooldown' && countdownRemaining === 0 && (
-            <Pressable style={styles.ghostButton} onPress={handleSkipCooldown}>
-              <ThemedText type="defaultSemiBold" style={styles.ghostButtonText}>
-                Skip Cooldown
-              </ThemedText>
-            </Pressable>
-          )}
+          <ThemedView style={styles.footerCard}>
+            <ThemedText style={styles.mutedText}>
+              {template.exercises.length} exercises configured · {template.cooldownSeconds}s cooldown
+            </ThemedText>
+          </ThemedView>
         </View>
-
-        <ThemedView style={styles.footerCard}>
-          <ThemedText style={styles.mutedText}>
-            {template.exercises.length} exercises configured · {template.cooldownSeconds}s cooldown
-          </ThemedText>
-        </ThemedView>
-      </ThemedView>
+      </AppGradientBackground>
     </SafeAreaView>
   );
 }
@@ -673,28 +685,24 @@ export default function RunSessionScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: UI.bg,
+    backgroundColor: UI.bgFallback,
   },
   container: {
     flex: 1,
     paddingHorizontal: 16,
     paddingTop: 12,
     gap: 14,
-    backgroundColor: UI.bg,
+    backgroundColor: 'transparent',
   },
   centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: UI.bg,
+    backgroundColor: 'transparent',
     paddingHorizontal: 24,
     gap: 10,
   },
   headerCard: {
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: UI.border,
-    backgroundColor: UI.bgElevated,
     padding: 16,
     gap: 8,
   },

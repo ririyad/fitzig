@@ -21,10 +21,9 @@ A minimal, fitness‑oriented workout tracker built with React Native + Expo Rou
 - **Complete Session**: log counts per exercise/set
 - **Settings**: haptics/sound/countdown preferences
 - **Local Storage**: AsyncStorage-backed persistence
-- **Styling**: dark theme, tighter spacing, premium typography
+- **Styling**: calm static blue-teal gradients on page/hero surfaces, solid cards for readability, premium typography
 
 ## What Still Needs To Be Done
-- Update `package-lock.json` by running `npm install` (network required)
 - Optional: session history detail view
 - Optional: edit/delete templates
 - Optional: cloud backup / Google sign‑in
@@ -68,3 +67,11 @@ A minimal, fitness‑oriented workout tracker built with React Native + Expo Rou
 ## Notes
 - Data is stored locally only.
 - Fonts load at app start; if fonts fail to load, check `@expo-google-fonts/manrope` and network access.
+
+## Styling System
+- The app uses `expo-linear-gradient` for static background and hero gradients.
+- Gradient tokens and per-screen variants live in `/Users/rashedulriyad/Documents/codespace/apps/fitzig/constants/gradients.ts`.
+- Reusable wrappers:
+  - `/Users/rashedulriyad/Documents/codespace/apps/fitzig/components/app-gradient-background.tsx`
+  - `/Users/rashedulriyad/Documents/codespace/apps/fitzig/components/gradient-hero.tsx`
+- Cards, forms, and tab bar intentionally remain solid for contrast and legibility.

@@ -3,6 +3,8 @@ import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 
+import { AppGradientBackground } from '@/components/app-gradient-background';
+import { GradientHero } from '@/components/gradient-hero';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { EXERCISES } from '@/constants/exercises';
@@ -82,60 +84,66 @@ export default function CompleteSessionScreen() {
 
   if (!template) {
     return (
-      <SafeAreaView style={[styles.safeArea, styles.centered]} edges={['top']}>
-        <ThemedText style={styles.bodyText}>Loading session...</ThemedText>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <AppGradientBackground variant="complete">
+          <View style={styles.centered}>
+            <ThemedText style={styles.bodyText}>Loading session...</ThemedText>
+          </View>
+        </AppGradientBackground>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
-        <ThemedView style={styles.hero}>
-          <ThemedText style={styles.eyebrow}>Session Complete</ThemedText>
-          <ThemedText type="title" style={styles.title}>
-            Log Your Results
-          </ThemedText>
-          <ThemedText style={styles.subtitle}>{template.name}</ThemedText>
-        </ThemedView>
+      <AppGradientBackground variant="complete">
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
+          <GradientHero variant="complete" style={styles.hero}>
+            <ThemedText style={styles.eyebrow}>Session Complete</ThemedText>
+            <ThemedText type="title" style={styles.title}>
+              Log Your Results
+            </ThemedText>
+            <ThemedText style={styles.subtitle}>{template.name}</ThemedText>
+          </GradientHero>
 
-        {Array.from({ length: template.setsCount }).map((_, setIndex) => (
-          <ThemedView key={setIndex} style={styles.setCard}>
-            <View style={styles.setHeader}>
-              <ThemedText type="defaultSemiBold" style={styles.setTitle}>
-                Set {setIndex + 1}
-              </ThemedText>
-              <View style={styles.badge}>
-                <ThemedText style={styles.badgeText}>{template.exercises.length} exercises</ThemedText>
-              </View>
-            </View>
-            {template.exercises.map((exercise) => {
-              const key = `${setIndex}_${exercise.exerciseId}`;
-              return (
-                <View key={key} style={styles.exerciseRow}>
-                  <ThemedText style={styles.bodyText}>
-                    {exerciseNames[exercise.exerciseId] ?? exercise.exerciseId}
-                  </ThemedText>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Reps"
-                    value={counts[key] ?? ''}
-                    onChangeText={(value) => updateCount(key, value)}
-                    keyboardType="number-pad"
-                    placeholderTextColor={UI.textMuted}
-                  />
+          {Array.from({ length: template.setsCount }).map((_, setIndex) => (
+            <ThemedView key={setIndex} style={styles.setCard}>
+              <View style={styles.setHeader}>
+                <ThemedText type="defaultSemiBold" style={styles.setTitle}>
+                  Set {setIndex + 1}
+                </ThemedText>
+                <View style={styles.badge}>
+                  <ThemedText style={styles.badgeText}>{template.exercises.length} exercises</ThemedText>
                 </View>
-              );
-            })}
-          </ThemedView>
-        ))}
+              </View>
+              {template.exercises.map((exercise) => {
+                const key = `${setIndex}_${exercise.exerciseId}`;
+                return (
+                  <View key={key} style={styles.exerciseRow}>
+                    <ThemedText style={styles.bodyText}>
+                      {exerciseNames[exercise.exerciseId] ?? exercise.exerciseId}
+                    </ThemedText>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Reps"
+                      value={counts[key] ?? ''}
+                      onChangeText={(value) => updateCount(key, value)}
+                      keyboardType="number-pad"
+                      placeholderTextColor={UI.textMuted}
+                    />
+                  </View>
+                );
+              })}
+            </ThemedView>
+          ))}
 
-        <Pressable style={styles.primaryButton} onPress={handleSave}>
-          <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-            Save Results
-          </ThemedText>
-        </Pressable>
-      </ScrollView>
+          <Pressable style={styles.primaryButton} onPress={handleSave}>
+            <ThemedText type="defaultSemiBold" style={styles.buttonText}>
+              Save Results
+            </ThemedText>
+          </Pressable>
+        </ScrollView>
+      </AppGradientBackground>
     </SafeAreaView>
   );
 }
@@ -143,10 +151,10 @@ export default function CompleteSessionScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: UI.bg,
+    backgroundColor: UI.bgFallback,
   },
   scrollView: {
-    backgroundColor: UI.bg,
+    backgroundColor: 'transparent',
   },
   container: {
     flexGrow: 1,
@@ -154,19 +162,15 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 24,
     gap: 14,
-    backgroundColor: UI.bg,
+    backgroundColor: 'transparent',
   },
   centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: UI.bg,
+    backgroundColor: 'transparent',
   },
   hero: {
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: UI.border,
-    backgroundColor: UI.bgElevated,
     padding: 16,
     gap: 6,
   },

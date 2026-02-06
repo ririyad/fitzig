@@ -3,6 +3,8 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppGradientBackground } from '@/components/app-gradient-background';
+import { GradientHero } from '@/components/gradient-hero';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { EXERCISES } from '@/constants/exercises';
@@ -126,138 +128,145 @@ export default function ReportScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[styles.container, { paddingBottom: bottomPadding }]}
-        contentInsetAdjustmentBehavior="never">
-        <ThemedView style={styles.hero}>
-          <ThemedText style={styles.eyebrow}>Performance</ThemedText>
-          <ThemedText type="title" style={styles.title}>
-            Training Report
-          </ThemedText>
-          <ThemedText style={styles.subtitle}>
-            Weekly momentum, rep volume, and exercise distribution.
-          </ThemedText>
-        </ThemedView>
-
-        {loading ? (
-          <ThemedView style={styles.card}>
-            <ThemedText style={styles.bodyText}>Loading report...</ThemedText>
-          </ThemedView>
-        ) : report.totalSessions === 0 ? (
-          <ThemedView style={styles.card}>
-            <ThemedText type="defaultSemiBold" style={styles.bodyText}>
-              No data yet
+      <AppGradientBackground variant="report">
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[styles.container, { paddingBottom: bottomPadding }]}
+          contentInsetAdjustmentBehavior="never">
+          <GradientHero variant="report" style={styles.hero}>
+            <ThemedText style={styles.eyebrow}>Performance</ThemedText>
+            <ThemedText type="title" style={styles.title}>
+              Training Report
             </ThemedText>
-            <ThemedText style={styles.mutedText}>
-              Complete at least one session to unlock charts and analytics.
+            <ThemedText style={styles.subtitle}>
+              Weekly momentum, rep volume, and exercise distribution.
             </ThemedText>
-          </ThemedView>
-        ) : (
-          <>
-            <View style={styles.metricsGrid}>
-              <ThemedView style={styles.metricCard}>
-                <ThemedText style={styles.metricLabel}>Sessions</ThemedText>
-                <ThemedText type="title" style={styles.metricValue}>
-                  {report.totalSessions}
-                </ThemedText>
-              </ThemedView>
-              <ThemedView style={styles.metricCard}>
-                <ThemedText style={styles.metricLabel}>This Week</ThemedText>
-                <ThemedText type="title" style={styles.metricValue}>
-                  {report.weeklySessions}
-                </ThemedText>
-              </ThemedView>
-              <ThemedView style={styles.metricCard}>
-                <ThemedText style={styles.metricLabel}>Total Reps</ThemedText>
-                <ThemedText type="title" style={styles.metricValue}>
-                  {report.totalReps}
-                </ThemedText>
-              </ThemedView>
-              <ThemedView style={styles.metricCard}>
-                <ThemedText style={styles.metricLabel}>Avg / Set</ThemedText>
-                <ThemedText type="title" style={styles.metricValue}>
-                  {report.averageReps}
-                </ThemedText>
-              </ThemedView>
-            </View>
+          </GradientHero>
 
+          {loading ? (
             <ThemedView style={styles.card}>
-              <View style={styles.cardHeader}>
-                <ThemedText type="subtitle" style={styles.sectionTitle}>
-                  Last 7 Days
-                </ThemedText>
-                <ThemedText style={styles.metaText}>{report.totalMinutes} timer mins</ThemedText>
+              <ThemedText style={styles.bodyText}>Loading report...</ThemedText>
+            </ThemedView>
+          ) : report.totalSessions === 0 ? (
+            <ThemedView style={styles.card}>
+              <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+                No data yet
+              </ThemedText>
+              <ThemedText style={styles.mutedText}>
+                Complete at least one session to unlock charts and analytics.
+              </ThemedText>
+            </ThemedView>
+          ) : (
+            <>
+              <View style={styles.metricsGrid}>
+                <ThemedView style={styles.metricCard}>
+                  <ThemedText style={styles.metricLabel}>Sessions</ThemedText>
+                  <ThemedText type="title" style={styles.metricValue}>
+                    {report.totalSessions}
+                  </ThemedText>
+                </ThemedView>
+                <ThemedView style={styles.metricCard}>
+                  <ThemedText style={styles.metricLabel}>This Week</ThemedText>
+                  <ThemedText type="title" style={styles.metricValue}>
+                    {report.weeklySessions}
+                  </ThemedText>
+                </ThemedView>
+                <ThemedView style={styles.metricCard}>
+                  <ThemedText style={styles.metricLabel}>Total Reps</ThemedText>
+                  <ThemedText type="title" style={styles.metricValue}>
+                    {report.totalReps}
+                  </ThemedText>
+                </ThemedView>
+                <ThemedView style={styles.metricCard}>
+                  <ThemedText style={styles.metricLabel}>Avg / Set</ThemedText>
+                  <ThemedText type="title" style={styles.metricValue}>
+                    {report.averageReps}
+                  </ThemedText>
+                </ThemedView>
               </View>
-              <View style={styles.dailyChartRow}>
-                {report.dailySessions.map((point) => {
-                  const ratio = point.count / maxDailyCount;
-                  return (
-                    <View key={point.dayKey} style={styles.dailyColumn}>
-                      <View style={styles.dailyTrack}>
+
+              <ThemedView style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <ThemedText type="subtitle" style={styles.sectionTitle}>
+                    Last 7 Days
+                  </ThemedText>
+                  <ThemedText style={styles.metaText}>{report.totalMinutes} timer mins</ThemedText>
+                </View>
+                <View style={styles.dailyChartRow}>
+                  {report.dailySessions.map((point) => {
+                    const ratio = point.count / maxDailyCount;
+                    return (
+                      <View key={point.dayKey} style={styles.dailyColumn}>
+                        <View style={styles.dailyTrack}>
+                          <View
+                            style={[
+                              styles.dailyBar,
+                              { height: Math.max(6, Math.round(CHART_HEIGHT * ratio)) },
+                            ]}
+                          />
+                        </View>
+                        <ThemedText style={styles.dailyCount}>{point.count}</ThemedText>
+                        <ThemedText style={styles.dailyLabel}>{point.label}</ThemedText>
+                      </View>
+                    );
+                  })}
+                </View>
+              </ThemedView>
+
+              <ThemedView style={styles.card}>
+                <ThemedText type="subtitle" style={styles.sectionTitle}>
+                  Top Exercises by Reps
+                </ThemedText>
+                {report.topExercises.length === 0 ? (
+                  <ThemedText style={styles.mutedText}>No rep counts logged yet.</ThemedText>
+                ) : (
+                  report.topExercises.map((item) => (
+                    <View key={item.id} style={styles.rowBlock}>
+                      <View style={styles.rowHeader}>
+                        <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+                          {item.name}
+                        </ThemedText>
+                        <ThemedText style={styles.metaText}>{item.totalReps} reps</ThemedText>
+                      </View>
+                      <View style={styles.repsTrack}>
                         <View
                           style={[
-                            styles.dailyBar,
-                            { height: Math.max(6, Math.round(CHART_HEIGHT * ratio)) },
+                            styles.repsBar,
+                            {
+                              width: `${Math.max(
+                                8,
+                                Math.round((item.totalReps / maxExerciseReps) * 100)
+                              )}%`,
+                            },
                           ]}
                         />
                       </View>
-                      <ThemedText style={styles.dailyCount}>{point.count}</ThemedText>
-                      <ThemedText style={styles.dailyLabel}>{point.label}</ThemedText>
                     </View>
-                  );
-                })}
-              </View>
-            </ThemedView>
+                  ))
+                )}
+              </ThemedView>
 
-            <ThemedView style={styles.card}>
-              <ThemedText type="subtitle" style={styles.sectionTitle}>
-                Top Exercises by Reps
-              </ThemedText>
-              {report.topExercises.length === 0 ? (
-                <ThemedText style={styles.mutedText}>No rep counts logged yet.</ThemedText>
-              ) : (
-                report.topExercises.map((item) => (
-                  <View key={item.id} style={styles.rowBlock}>
-                    <View style={styles.rowHeader}>
-                      <ThemedText type="defaultSemiBold" style={styles.bodyText}>
-                        {item.name}
-                      </ThemedText>
-                      <ThemedText style={styles.metaText}>{item.totalReps} reps</ThemedText>
+              <ThemedView style={styles.card}>
+                <ThemedText type="subtitle" style={styles.sectionTitle}>
+                  Most Used Templates
+                </ThemedText>
+                {report.topTemplates.length === 0 ? (
+                  <ThemedText style={styles.mutedText}>No template usage found yet.</ThemedText>
+                ) : (
+                  report.topTemplates.map((item) => (
+                    <View key={item.templateName} style={styles.templateRow}>
+                      <ThemedText style={styles.bodyText}>{item.templateName}</ThemedText>
+                      <View style={styles.badge}>
+                        <ThemedText style={styles.badgeText}>{item.count} sessions</ThemedText>
+                      </View>
                     </View>
-                    <View style={styles.repsTrack}>
-                      <View
-                        style={[
-                          styles.repsBar,
-                          { width: `${Math.max(8, Math.round((item.totalReps / maxExerciseReps) * 100))}%` },
-                        ]}
-                      />
-                    </View>
-                  </View>
-                ))
-              )}
-            </ThemedView>
-
-            <ThemedView style={styles.card}>
-              <ThemedText type="subtitle" style={styles.sectionTitle}>
-                Most Used Templates
-              </ThemedText>
-              {report.topTemplates.length === 0 ? (
-                <ThemedText style={styles.mutedText}>No template usage found yet.</ThemedText>
-              ) : (
-                report.topTemplates.map((item) => (
-                  <View key={item.templateName} style={styles.templateRow}>
-                    <ThemedText style={styles.bodyText}>{item.templateName}</ThemedText>
-                    <View style={styles.badge}>
-                      <ThemedText style={styles.badgeText}>{item.count} sessions</ThemedText>
-                    </View>
-                  </View>
-                ))
-              )}
-            </ThemedView>
-          </>
-        )}
-      </ScrollView>
+                  ))
+                )}
+              </ThemedView>
+            </>
+          )}
+        </ScrollView>
+      </AppGradientBackground>
     </SafeAreaView>
   );
 }
@@ -265,23 +274,19 @@ export default function ReportScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: UI.bg,
+    backgroundColor: UI.bgFallback,
   },
   scrollView: {
-    backgroundColor: UI.bg,
+    backgroundColor: 'transparent',
   },
   container: {
     flexGrow: 1,
     paddingHorizontal: 16,
     paddingTop: 12,
     gap: 14,
-    backgroundColor: UI.bg,
+    backgroundColor: 'transparent',
   },
   hero: {
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: UI.border,
-    backgroundColor: UI.bgElevated,
     padding: 16,
     gap: 6,
   },
