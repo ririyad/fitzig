@@ -89,7 +89,7 @@ export default function CreateSessionScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
         <ThemedText type="title" style={styles.title}>
           Create Session
         </ThemedText>
@@ -199,7 +199,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0b0f1a',
   },
+  scrollView: {
+    backgroundColor: '#0b0f1a',
+  },
   container: {
+    flexGrow: 1,
     padding: 16,
     gap: 16,
     backgroundColor: '#0b0f1a',

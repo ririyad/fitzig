@@ -121,16 +121,22 @@ export default function RunSessionScreen() {
     setRemainingSeconds(template.exercises[0].durationSeconds);
   };
 
+  const handleSkipCooldown = () => {
+    if (status !== 'cooldown' || remainingSeconds <= 0) return;
+    setRemainingSeconds(0);
+  };
+
   if (!template) {
     return (
-      <ThemedView style={styles.centered}>
-        <ThemedText>Loading session...</ThemedText>
-      </ThemedView>
+      <SafeAreaView style={[styles.safeArea, styles.centered]} edges={['top']}>
+        <ThemedText style={styles.bodyText}>Loading session...</ThemedText>
+      </SafeAreaView>
     );
   }
 
   const statusLabel = status === 'idle' ? 'Ready' : status === 'cooldown' ? 'Cooldown' : 'Exercise';
   const displaySeconds = status === 'idle' ? previewDuration : remainingSeconds;
+  const isCompactPreview = displaySeconds >= 100;
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -144,13 +150,25 @@ export default function RunSessionScreen() {
             Set {currentSetIndex + 1} of {template.setsCount}
           </ThemedText>
           <ThemedText style={styles.bodyText}>{statusLabel}</ThemedText>
-          <ThemedText type="title" style={styles.timerText}>
+          <ThemedText
+            type="title"
+            style={[styles.timerText, isCompactPreview && styles.timerTextCompact]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}>
             {formatSeconds(displaySeconds)}s
           </ThemedText>
           {status !== 'cooldown' && status !== 'idle' && (
             <ThemedText type="defaultSemiBold" style={styles.bodyText}>
               {currentExerciseName}
             </ThemedText>
+          )}
+          {status === 'cooldown' && (
+            <Pressable style={styles.secondaryButton} onPress={handleSkipCooldown}>
+              <ThemedText type="defaultSemiBold" style={styles.secondaryButtonText}>
+                Skip Cooldown
+              </ThemedText>
+            </Pressable>
           )}
           {status === 'idle' && (
             <ThemedText style={styles.bodyText}>First exercise: {currentExerciseName}</ThemedText>
@@ -195,9 +213,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#0b0f1a',
   },
   statusCard: {
-    padding: 20,
+    paddingVertical: 22,
+    paddingHorizontal: 18,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#1f2937',
@@ -207,12 +227,20 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
-    gap: 10,
+    gap: 12,
     alignItems: 'center',
   },
   timerText: {
-    fontSize: 48,
+    fontSize: 52,
+    lineHeight: 62,
+    fontFamily: 'Manrope_700Bold',
     color: '#f8fafc',
+    paddingHorizontal: 6,
+    textAlign: 'center',
+  },
+  timerTextCompact: {
+    fontSize: 46,
+    lineHeight: 54,
   },
   details: {
     gap: 12,
@@ -225,5 +253,15 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#ffffff',
+  },
+  secondaryButton: {
+    marginTop: 4,
+    backgroundColor: '#1f2937',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+  },
+  secondaryButtonText: {
+    color: '#f8fafc',
   },
 });

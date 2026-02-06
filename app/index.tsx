@@ -44,6 +44,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <ScrollView
+        style={styles.scrollView}
         contentContainerStyle={[styles.container, { paddingBottom: bottomPadding }]}
         contentInsetAdjustmentBehavior="never">
         <ThemedView style={styles.hero}>
@@ -132,7 +133,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0b0f1a',
   },
+  scrollView: {
+    backgroundColor: '#0b0f1a',
+  },
   container: {
+    flexGrow: 1,
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 60,
