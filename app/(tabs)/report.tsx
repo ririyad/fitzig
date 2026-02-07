@@ -15,6 +15,10 @@ import { SessionRun } from '@/types/workout';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CHART_HEIGHT = 92;
+const PUSH_UP_ID = 'push_up';
+const PUSH_UP_WINDOW_DAYS = 30;
+const PUSH_UP_CHART_HEIGHT = 96;
+const PUSH_UP_BAR_MIN_HEIGHT = 4;
 
 function startOfDay(timestamp: number) {
   const value = new Date(timestamp);
@@ -32,6 +36,13 @@ type ExerciseSummary = {
   id: string;
   name: string;
   totalReps: number;
+};
+
+type PushUpTrendPoint = {
+  dayKey: number;
+  label: string;
+  reps: number;
+  showLabel: boolean;
 };
 
 export default function ReportScreen() {
@@ -59,11 +70,29 @@ export default function ReportScreen() {
 
   const report = useMemo(() => {
     const totalSessions = runs.length;
+    const oneWeekAgo = Date.now() - 7 * DAY_MS;
+    const now = Date.now();
+    const todayStart = startOfDay(now);
     let totalLoggedSets = 0;
     let totalReps = 0;
     let totalDurationSeconds = 0;
+    let pushUpTotalReps = 0;
+    let pushUpWeeklyReps = 0;
+    let pushUpLoggedSets = 0;
     const exerciseTotals: Record<string, number> = {};
     const templateTotals: Record<string, number> = {};
+    const pushUpDayTotals = new Map<number, number>();
+
+    const pushUpDailyTrend: PushUpTrendPoint[] = Array.from({ length: PUSH_UP_WINDOW_DAYS }, (_, index) => {
+      const dayKey = todayStart - (PUSH_UP_WINDOW_DAYS - 1 - index) * DAY_MS;
+      const label = new Date(dayKey).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      return {
+        dayKey,
+        label,
+        reps: 0,
+        showLabel: index % 5 === 0 || index === PUSH_UP_WINDOW_DAYS - 1,
+      };
+    });
 
     runs.forEach((run) => {
       templateTotals[run.templateName] = (templateTotals[run.templateName] ?? 0) + 1;
@@ -73,16 +102,36 @@ export default function ReportScreen() {
         totalLoggedSets += 1;
         totalReps += result.count;
         exerciseTotals[result.exerciseId] = (exerciseTotals[result.exerciseId] ?? 0) + result.count;
+
+        if (result.exerciseId === PUSH_UP_ID) {
+          const clampedPushUpReps = Math.max(0, result.count);
+          const resultDay = startOfDay(run.completedAt);
+
+          pushUpLoggedSets += 1;
+          pushUpTotalReps += clampedPushUpReps;
+          pushUpDayTotals.set(resultDay, (pushUpDayTotals.get(resultDay) ?? 0) + clampedPushUpReps);
+          if (run.completedAt >= oneWeekAgo) {
+            pushUpWeeklyReps += clampedPushUpReps;
+          }
+        }
       });
     });
 
     const averageReps = totalLoggedSets > 0 ? Math.round(totalReps / totalLoggedSets) : 0;
+    const pushUpAveragePerSet =
+      pushUpLoggedSets > 0 ? Math.round(pushUpTotalReps / pushUpLoggedSets) : 0;
     const totalMinutes = Math.round(totalDurationSeconds / 60);
-    const oneWeekAgo = Date.now() - 7 * DAY_MS;
     const weeklySessions = runs.filter((run) => run.completedAt >= oneWeekAgo).length;
 
-    const now = Date.now();
-    const todayStart = startOfDay(now);
+    pushUpDailyTrend.forEach((point) => {
+      point.reps = pushUpDayTotals.get(point.dayKey) ?? 0;
+    });
+
+    const pushUp30dTotal = pushUpDailyTrend.reduce((sum, point) => sum + point.reps, 0);
+    const pushUp30dAveragePerDay = Math.round(pushUp30dTotal / PUSH_UP_WINDOW_DAYS);
+    const pushUp30dBestDay = Math.max(0, ...pushUpDailyTrend.map((point) => point.reps));
+    const pushUpTrendMax = Math.max(1, pushUp30dBestDay);
+
     const dailySessions: DailyPoint[] = Array.from({ length: 7 }, (_, index) => {
       const dayStart = todayStart - (6 - index) * DAY_MS;
       const dayEnd = dayStart + DAY_MS;
@@ -113,6 +162,15 @@ export default function ReportScreen() {
       totalMinutes,
       averageReps,
       weeklySessions,
+      pushUpTotalReps,
+      pushUpWeeklyReps,
+      pushUpLoggedSets,
+      pushUpAveragePerSet,
+      pushUp30dTotal,
+      pushUp30dAveragePerDay,
+      pushUp30dBestDay,
+      pushUpTrendMax,
+      pushUpDailyTrend,
       dailySessions,
       topExercises,
       topTemplates,
@@ -132,7 +190,7 @@ export default function ReportScreen() {
           <GradientHero variant="report" style={styles.hero}>
             <ThemedText style={styles.eyebrow}>Performance</ThemedText>
             <ThemedText type="title" style={styles.title}>
-              Training Report
+              Workout Report
             </ThemedText>
             <ThemedText style={styles.subtitle}>
               Weekly momentum, rep volume, and exercise distribution.
@@ -180,6 +238,94 @@ export default function ReportScreen() {
                   </ThemedText>
                 </ThemedView>
               </View>
+
+              <ThemedView style={styles.card}>
+                <ThemedText type="subtitle" style={styles.sectionTitle}>
+                  Push Up Reflection
+                </ThemedText>
+                <View style={styles.pushUpPrimaryRow}>
+                  <View style={styles.exerciseLabelRow}>
+                    <ExerciseIcon exerciseId={PUSH_UP_ID} size={18} color={UI.textSoft} />
+                    <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+                      Push Up
+                    </ThemedText>
+                  </View>
+                  <ThemedText type="title" style={styles.pushUpValue}>
+                    {report.pushUpTotalReps} reps
+                  </ThemedText>
+                </View>
+                <View style={styles.pushUpMetaRow}>
+                  <View style={styles.badge}>
+                    <ThemedText style={styles.badgeText}>
+                      Last 7 days: {report.pushUpWeeklyReps}
+                    </ThemedText>
+                  </View>
+                  <View style={styles.badge}>
+                    <ThemedText style={styles.badgeText}>
+                      Avg / set: {report.pushUpAveragePerSet}
+                    </ThemedText>
+                  </View>
+                </View>
+                {report.pushUpLoggedSets === 0 && (
+                  <ThemedText style={styles.mutedText}>
+                    No Push Up reps logged yet. Add Push Up in a session and save results.
+                  </ThemedText>
+                )}
+              </ThemedView>
+
+              <ThemedView style={[styles.card, styles.pushUpProgressCard]}>
+                <ThemedText type="subtitle" style={styles.sectionTitle}>
+                  Push Up Progress (30 Days)
+                </ThemedText>
+                <View style={styles.pushUpKpiRow}>
+                  <View style={styles.pushUpKpiItem}>
+                    <ThemedText style={styles.metricLabel}>Total (30d)</ThemedText>
+                    <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+                      {report.pushUp30dTotal}
+                    </ThemedText>
+                  </View>
+                  <View style={styles.pushUpKpiItem}>
+                    <ThemedText style={styles.metricLabel}>Avg / day</ThemedText>
+                    <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+                      {report.pushUp30dAveragePerDay}
+                    </ThemedText>
+                  </View>
+                  <View style={styles.pushUpKpiItem}>
+                    <ThemedText style={styles.metricLabel}>Best day</ThemedText>
+                    <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+                      {report.pushUp30dBestDay}
+                    </ThemedText>
+                  </View>
+                </View>
+                <View style={styles.pushUpChartRow}>
+                  {report.pushUpDailyTrend.map((point) => {
+                    const normalizedHeight = Math.round(
+                      (point.reps / report.pushUpTrendMax) * PUSH_UP_CHART_HEIGHT
+                    );
+                    const height = Math.max(PUSH_UP_BAR_MIN_HEIGHT, normalizedHeight);
+
+                    return (
+                      <View key={point.dayKey} style={styles.pushUpChartBarTrack}>
+                        <View style={[styles.pushUpChartBar, { height }]} />
+                      </View>
+                    );
+                  })}
+                </View>
+                <View style={styles.pushUpLabelRow}>
+                  {report.pushUpDailyTrend
+                    .filter((point) => point.showLabel)
+                    .map((point) => (
+                      <ThemedText key={point.dayKey} numberOfLines={1} style={styles.pushUpLabelText}>
+                        {point.label}
+                      </ThemedText>
+                    ))}
+                </View>
+                {report.pushUp30dTotal === 0 && (
+                  <ThemedText style={styles.mutedText}>
+                    No Push Up reps logged in the last 30 days.
+                  </ThemedText>
+                )}
+              </ThemedView>
 
               <ThemedView style={styles.card}>
                 <View style={styles.cardHeader}>
@@ -339,6 +485,73 @@ const styles = StyleSheet.create({
     backgroundColor: UI.bgElevated,
     padding: 12,
     gap: 10,
+  },
+  pushUpPrimaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 10,
+  },
+  pushUpValue: {
+    color: UI.text,
+    fontSize: 24,
+    lineHeight: 30,
+  },
+  pushUpMetaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  pushUpProgressCard: {
+    gap: 12,
+  },
+  pushUpKpiRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 8,
+  },
+  pushUpKpiItem: {
+    flex: 1,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: UI.borderSoft,
+    backgroundColor: UI.bgMuted,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    gap: 2,
+  },
+  pushUpChartRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 3,
+    height: PUSH_UP_CHART_HEIGHT,
+  },
+  pushUpChartBarTrack: {
+    flex: 1,
+    height: PUSH_UP_CHART_HEIGHT,
+    borderRadius: 8,
+    justifyContent: 'flex-end',
+    backgroundColor: UI.bgMuted,
+    overflow: 'hidden',
+  },
+  pushUpChartBar: {
+    width: '100%',
+    borderRadius: 8,
+    backgroundColor: UI.accentStrong,
+  },
+  pushUpLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 6,
+  },
+  pushUpLabelText: {
+    color: UI.textMuted,
+    fontSize: 9,
+    lineHeight: 12,
+    width: 42,
+    textAlign: 'center',
   },
   cardHeader: {
     flexDirection: 'row',
