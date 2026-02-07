@@ -6,11 +6,12 @@ import { useNavigation } from '@react-navigation/native';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { AppGradientBackground } from '@/components/app-gradient-background';
+import { ExerciseIcon } from '@/components/exercise-icon';
 import { GradientHero } from '@/components/gradient-hero';
 import { AppGradientVariant } from '@/constants/gradients';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { EXERCISES } from '@/constants/exercises';
+import { getExerciseMeta } from '@/constants/exercises';
 import { UI } from '@/constants/ui';
 import {
   clearActiveSessionSnapshot,
@@ -436,17 +437,17 @@ export default function RunSessionScreen() {
     return template.exercises[0]?.durationSeconds ?? 0;
   }, [template]);
 
-  const currentExerciseName = useMemo(() => {
-    if (!currentExercise) return '';
-    return EXERCISES.find((entry) => entry.id === currentExercise.exerciseId)?.name ?? currentExercise.exerciseId;
+  const currentExerciseMeta = useMemo(() => {
+    if (!currentExercise) return null;
+    return getExerciseMeta(currentExercise.exerciseId);
   }, [currentExercise]);
 
-  const nextExerciseName = useMemo(() => {
-    if (!template || !template.exercises.length) return '';
+  const nextExerciseMeta = useMemo(() => {
+    if (!template || !template.exercises.length) return null;
     const nextIndex = runtime.currentExerciseIndex + 1;
     const nextExercise = template.exercises[nextIndex] ?? template.exercises[0];
-    if (!nextExercise) return '';
-    return EXERCISES.find((entry) => entry.id === nextExercise.exerciseId)?.name ?? nextExercise.exerciseId;
+    if (!nextExercise) return null;
+    return getExerciseMeta(nextExercise.exerciseId);
   }, [template, runtime.currentExerciseIndex]);
 
   const displaySeconds = useMemo(() => {
@@ -660,11 +661,27 @@ export default function RunSessionScreen() {
                 {runtime.status === 'paused' ? 'Resuming session...' : 'Preparing first exercise...'}
               </ThemedText>
             ) : runtime.status === 'cooldown' ? (
-              <ThemedText style={styles.mutedText}>Up next: {nextExerciseName}</ThemedText>
+              nextExerciseMeta ? (
+                <View style={styles.exerciseDisplayRow}>
+                  <ExerciseIcon exerciseId={nextExerciseMeta.id} color={UI.textMuted} />
+                  <ThemedText style={styles.nextExerciseText}>Up next: {nextExerciseMeta.name}</ThemedText>
+                </View>
+              ) : (
+                <ThemedText style={styles.mutedText}>Up next: Next Exercise</ThemedText>
+              )
             ) : (
-              <ThemedText type="defaultSemiBold" style={styles.bodyText}>
-                {currentExerciseName || 'Get Ready'}
-              </ThemedText>
+              currentExerciseMeta ? (
+                <View style={styles.exerciseDisplayRow}>
+                  <ExerciseIcon exerciseId={currentExerciseMeta.id} color={UI.text} />
+                  <ThemedText type="defaultSemiBold" style={styles.exerciseDisplayText}>
+                    {currentExerciseMeta.name}
+                  </ThemedText>
+                </View>
+              ) : (
+                <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+                  Get Ready
+                </ThemedText>
+              )
             )}
 
             <View style={styles.controlsRow}>
@@ -813,6 +830,23 @@ const styles = StyleSheet.create({
   timerValueWrap: {
     width: '100%',
     alignItems: 'center',
+  },
+  exerciseDisplayRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  exerciseDisplayText: {
+    color: UI.text,
+    fontSize: 16,
+    lineHeight: 24,
+    fontFamily: 'Manrope_600SemiBold',
+  },
+  nextExerciseText: {
+    color: UI.textMuted,
+    fontSize: 14,
+    lineHeight: 20,
+    fontFamily: 'Manrope_400Regular',
   },
   controlsRow: {
     flexDirection: 'row',

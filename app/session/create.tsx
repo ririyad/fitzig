@@ -11,10 +11,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 import { AppGradientBackground } from '@/components/app-gradient-background';
+import { ExerciseIcon } from '@/components/exercise-icon';
 import { GradientHero } from '@/components/gradient-hero';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { EXERCISES } from '@/constants/exercises';
+import { EXERCISES, getExerciseMeta } from '@/constants/exercises';
 import { UI } from '@/constants/ui';
 import { newTemplateId, saveSessionTemplate } from '@/lib/workout-storage';
 import { SessionExercise, SessionTemplate } from '@/types/workout';
@@ -154,13 +155,16 @@ export default function CreateSessionScreen() {
               <ThemedText style={styles.mutedText}>No exercises selected yet.</ThemedText>
             ) : (
               selectedExercises.map((item, index) => {
-                const exercise = EXERCISES.find((entry) => entry.id === item.exerciseId);
+                const exercise = getExerciseMeta(item.exerciseId);
                 return (
                   <View key={item.exerciseId} style={styles.exerciseRow}>
                     <View style={styles.exerciseHeader}>
-                      <ThemedText type="defaultSemiBold" style={styles.bodyText}>
-                        {index + 1}. {exercise?.name ?? item.exerciseId}
-                      </ThemedText>
+                      <View style={styles.exerciseNameRow}>
+                        <ExerciseIcon exerciseId={item.exerciseId} color={UI.textSoft} />
+                        <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+                          {index + 1}. {exercise.name}
+                        </ThemedText>
+                      </View>
                       <Pressable
                         style={styles.removeButton}
                         onPress={() => removeExercise(item.exerciseId)}>
@@ -196,7 +200,10 @@ export default function CreateSessionScreen() {
                   key={exercise.id}
                   style={styles.exerciseChip}
                   onPress={() => addExercise(exercise.id)}>
-                  <ThemedText style={styles.chipText}>{exercise.name}</ThemedText>
+                  <View style={styles.chipContent}>
+                    <ExerciseIcon exerciseId={exercise.id} size={15} color={UI.textSoft} />
+                    <ThemedText style={styles.chipText}>{exercise.name}</ThemedText>
+                  </View>
                 </Pressable>
               ))}
             </View>
@@ -317,6 +324,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
+  exerciseNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
   durationRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -353,6 +366,11 @@ const styles = StyleSheet.create({
     backgroundColor: UI.cardStrong,
     paddingHorizontal: 12,
     paddingVertical: 7,
+  },
+  chipContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   chipText: {
     color: UI.textSoft,

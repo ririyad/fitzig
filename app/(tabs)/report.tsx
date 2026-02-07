@@ -4,10 +4,11 @@ import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppGradientBackground } from '@/components/app-gradient-background';
+import { ExerciseIcon } from '@/components/exercise-icon';
 import { GradientHero } from '@/components/gradient-hero';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { EXERCISES } from '@/constants/exercises';
+import { getExerciseMeta } from '@/constants/exercises';
 import { UI } from '@/constants/ui';
 import { listSessionRuns } from '@/lib/workout-storage';
 import { SessionRun } from '@/types/workout';
@@ -63,11 +64,6 @@ export default function ReportScreen() {
     let totalDurationSeconds = 0;
     const exerciseTotals: Record<string, number> = {};
     const templateTotals: Record<string, number> = {};
-    const exerciseNameById: Record<string, string> = {};
-
-    EXERCISES.forEach((exercise) => {
-      exerciseNameById[exercise.id] = exercise.name;
-    });
 
     runs.forEach((run) => {
       templateTotals[run.templateName] = (templateTotals[run.templateName] ?? 0) + 1;
@@ -100,7 +96,7 @@ export default function ReportScreen() {
     const topExercises: ExerciseSummary[] = Object.entries(exerciseTotals)
       .map(([exerciseId, reps]) => ({
         id: exerciseId,
-        name: exerciseNameById[exerciseId] ?? exerciseId,
+        name: getExerciseMeta(exerciseId).name,
         totalReps: reps,
       }))
       .sort((a, b) => b.totalReps - a.totalReps)
@@ -223,9 +219,12 @@ export default function ReportScreen() {
                   report.topExercises.map((item) => (
                     <View key={item.id} style={styles.rowBlock}>
                       <View style={styles.rowHeader}>
-                        <ThemedText type="defaultSemiBold" style={styles.bodyText}>
-                          {item.name}
-                        </ThemedText>
+                        <View style={styles.exerciseLabelRow}>
+                          <ExerciseIcon exerciseId={item.id} size={15} color={UI.textSoft} />
+                          <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+                            {item.name}
+                          </ThemedText>
+                        </View>
                         <ThemedText style={styles.metaText}>{item.totalReps} reps</ThemedText>
                       </View>
                       <View style={styles.repsTrack}>
@@ -396,6 +395,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 8,
+  },
+  exerciseLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+    marginRight: 10,
   },
   repsTrack: {
     width: '100%',

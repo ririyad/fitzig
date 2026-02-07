@@ -1,6 +1,7 @@
 export type ExerciseType = {
   id: string;
   name: string;
+  iconName: string;
 };
 
 export type SessionExercise = {

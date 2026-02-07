@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { AppGradientBackground } from '@/components/app-gradient-background';
+import { ExerciseIcon } from '@/components/exercise-icon';
 import { GradientHero } from '@/components/gradient-hero';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { EXERCISES } from '@/constants/exercises';
+import { getExerciseMeta } from '@/constants/exercises';
 import { UI } from '@/constants/ui';
 import { getSessionTemplateById, newRunId, saveSessionRun } from '@/lib/workout-storage';
 import { SessionRun, SessionTemplate, SetResult } from '@/types/workout';
@@ -36,14 +37,6 @@ export default function CompleteSessionScreen() {
     }
     setCounts(initial);
   }, [template]);
-
-  const exerciseNames = useMemo(() => {
-    const map: Record<string, string> = {};
-    EXERCISES.forEach((exercise) => {
-      map[exercise.id] = exercise.name;
-    });
-    return map;
-  }, []);
 
   const updateCount = (key: string, value: string) => {
     setCounts((prev) => ({ ...prev, [key]: value }));
@@ -118,11 +111,13 @@ export default function CompleteSessionScreen() {
               </View>
               {template.exercises.map((exercise) => {
                 const key = `${setIndex}_${exercise.exerciseId}`;
+                const exerciseMeta = getExerciseMeta(exercise.exerciseId);
                 return (
                   <View key={key} style={styles.exerciseRow}>
-                    <ThemedText style={styles.bodyText}>
-                      {exerciseNames[exercise.exerciseId] ?? exercise.exerciseId}
-                    </ThemedText>
+                    <View style={styles.exerciseLabelRow}>
+                      <ExerciseIcon exerciseId={exercise.exerciseId} color={UI.textSoft} />
+                      <ThemedText style={styles.bodyText}>{exerciseMeta.name}</ThemedText>
+                    </View>
                     <TextInput
                       style={styles.input}
                       placeholder="Reps"
@@ -229,6 +224,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: UI.card,
     padding: 10,
+  },
+  exerciseLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+    marginRight: 10,
   },
   input: {
     borderWidth: 1,
