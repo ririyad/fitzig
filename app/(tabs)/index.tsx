@@ -4,6 +4,7 @@ import { Link } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 
 import { AppGradientBackground } from '@/components/app-gradient-background';
 import { GradientHero } from '@/components/gradient-hero';
@@ -37,6 +38,10 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const insets = useSafeAreaInsets();
   const bottomPadding = 22 + Math.max(insets.bottom, 12);
+  const appVersion = useMemo(
+    () => Constants.expoConfig?.version ?? Constants.nativeAppVersion ?? '0.0.0',
+    []
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -137,6 +142,7 @@ export default function HomeScreen() {
             <ThemedText type="title" style={styles.heroTitle} allowFontScaling={false}>
               Fitzig
             </ThemedText>
+            <ThemedText style={styles.versionText}>Version {appVersion}</ThemedText>
             <ThemedText style={styles.heroSubtitle}>
               Create structured sessions, keep momentum, and track your volume over time.
             </ThemedText>
@@ -318,6 +324,12 @@ const styles = StyleSheet.create({
     fontSize: 32,
     lineHeight: 40,
     marginBottom: 2,
+  },
+  versionText: {
+    color: UI.textSoft,
+    fontSize: 13,
+    lineHeight: 18,
+    fontFamily: 'Manrope_600SemiBold',
   },
   heroSubtitle: {
     color: UI.textMuted,
