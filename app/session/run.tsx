@@ -13,6 +13,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { getExerciseMeta } from '@/constants/exercises';
 import { UI } from '@/constants/ui';
+import { disposeSoundCues, initSoundCues, playSoundCue, setSoundEnabled } from '@/lib/sound-cues';
 import {
   clearActiveSessionSnapshot,
   getActiveSessionSnapshot,
@@ -143,6 +144,17 @@ export default function RunSessionScreen() {
     [settings.hapticsEnabled]
   );
 
+  useEffect(() => {
+    setSoundEnabled(settings.soundEnabled);
+  }, [settings.soundEnabled]);
+
+  useEffect(() => {
+    void initSoundCues();
+    return () => {
+      void disposeSoundCues();
+    };
+  }, []);
+
   const persistSnapshotNow = useCallback(async () => {
     if (!template) return;
 
@@ -199,6 +211,7 @@ export default function RunSessionScreen() {
     }
 
     void triggerHaptic('complete');
+    void playSoundCue('complete');
     allowNavigationRef.current = true;
 
     router.replace({
@@ -405,8 +418,10 @@ export default function RunSessionScreen() {
 
       if (movedToNextExercise) {
         void triggerHaptic('exercise');
+        void playSoundCue('exercise');
       } else if (nextState.status === 'cooldown' && runtime.status !== 'cooldown') {
         void triggerHaptic('cooldown');
+        void playSoundCue('cooldown');
       }
 
       setRuntime(nextState);

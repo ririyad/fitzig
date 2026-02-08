@@ -214,7 +214,7 @@ export default function SettingsScreen() {
                       Sound Cues
                     </ThemedText>
                     <ThemedText style={styles.mutedText}>
-                      Reserved toggle for optional sound alerts.
+                      Plays subtle cues on phase transitions and session completion.
                     </ThemedText>
                   </View>
                   <Switch
