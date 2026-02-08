@@ -456,30 +456,41 @@ export default function RunSessionScreen() {
     return getCurrentRemainingSeconds(runtime, clock);
   }, [countdownRemaining, runtime, previewDuration, clock]);
 
+  const isCriticalLastSeconds =
+    countdownRemaining === 0 &&
+    isRunningStatus(runtime.status) &&
+    displaySeconds > 0 &&
+    displaySeconds <= 5;
+
   useEffect(() => {
+    const scalePeak = isCriticalLastSeconds ? 1.085 : 1.035;
+    const fadeLow = isCriticalLastSeconds ? 0.82 : 0.92;
+    const inDuration = isCriticalLastSeconds ? 90 : 120;
+    const outDuration = isCriticalLastSeconds ? 140 : 190;
+
     const scaleIn = Animated.timing(timerScale, {
-      toValue: 1.035,
-      duration: 120,
+      toValue: scalePeak,
+      duration: inDuration,
       useNativeDriver: true,
     });
     const scaleOut = Animated.timing(timerScale, {
       toValue: 1,
-      duration: 190,
+      duration: outDuration,
       useNativeDriver: true,
     });
     const fadeIn = Animated.timing(timerOpacity, {
       toValue: 1,
-      duration: 120,
+      duration: inDuration,
       useNativeDriver: true,
     });
     const fadeOut = Animated.timing(timerOpacity, {
-      toValue: 0.92,
-      duration: 190,
+      toValue: fadeLow,
+      duration: outDuration,
       useNativeDriver: true,
     });
 
     Animated.parallel([Animated.sequence([scaleIn, scaleOut]), Animated.sequence([fadeOut, fadeIn])]).start();
-  }, [displaySeconds, timerOpacity, timerScale]);
+  }, [displaySeconds, isCriticalLastSeconds, timerOpacity, timerScale]);
 
   const statusLabel = useMemo(() => {
     if (countdownRemaining > 0) return 'Countdown';
@@ -630,8 +641,8 @@ export default function RunSessionScreen() {
             </View>
           </GradientHero>
 
-          <View style={styles.timerCard}>
-            <ThemedText style={styles.timerLabel}>
+          <View style={[styles.timerCard, isCriticalLastSeconds && styles.timerCardCritical]}>
+            <ThemedText style={[styles.timerLabel, isCriticalLastSeconds && styles.timerLabelCritical]}>
               {countdownRemaining > 0
                 ? 'Starting In'
                 : runtime.status === 'cooldown'
@@ -648,13 +659,22 @@ export default function RunSessionScreen() {
               ]}>
               <ThemedText
                 type="title"
-                style={[styles.timerText, isCompactPreview && styles.timerTextCompact]}
+                style={[
+                  styles.timerText,
+                  isCompactPreview && styles.timerTextCompact,
+                  isCriticalLastSeconds && styles.timerTextCritical,
+                ]}
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.7}>
                 {formatSeconds(displaySeconds)}s
               </ThemedText>
             </Animated.View>
+            {isCriticalLastSeconds && (
+              <ThemedText type="defaultSemiBold" style={styles.finalSecondsText}>
+                Final 5 seconds
+              </ThemedText>
+            )}
 
             {countdownRemaining > 0 ? (
               <ThemedText style={styles.mutedText}>
@@ -808,12 +828,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
+  timerCardCritical: {
+    borderColor: 'rgba(248, 113, 113, 0.8)',
+    backgroundColor: 'rgba(127, 29, 29, 0.32)',
+  },
   timerLabel: {
     color: UI.textMuted,
     fontSize: 13,
     lineHeight: 18,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
+  },
+  timerLabelCritical: {
+    color: '#fca5a5',
   },
   timerText: {
     fontSize: 58,
@@ -823,6 +850,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 8,
   },
+  timerTextCritical: {
+    color: '#f87171',
+    textShadowColor: 'rgba(239, 68, 68, 0.6)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 16,
+  },
   timerTextCompact: {
     fontSize: 50,
     lineHeight: 58,
@@ -830,6 +863,12 @@ const styles = StyleSheet.create({
   timerValueWrap: {
     width: '100%',
     alignItems: 'center',
+  },
+  finalSecondsText: {
+    color: '#fca5a5',
+    fontSize: 13,
+    lineHeight: 18,
+    letterSpacing: 0.4,
   },
   exerciseDisplayRow: {
     flexDirection: 'row',
