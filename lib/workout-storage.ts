@@ -195,6 +195,10 @@ export async function clearActiveSessionSnapshot(): Promise<void> {
   await AsyncStorage.removeItem(ACTIVE_SESSION_KEY);
 }
 
+export async function clearAllAppData(): Promise<void> {
+  await AsyncStorage.multiRemove([STORAGE_KEY, ACTIVE_SESSION_KEY, SETTINGS_KEY]);
+}
+
 export async function getAppSettings(): Promise<AppSettings> {
   try {
     const raw = await AsyncStorage.getItem(SETTINGS_KEY);

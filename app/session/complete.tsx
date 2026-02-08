@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import { AppGradientBackground } from '@/components/app-gradient-background';
+import { AppDialog, AppDialogAction } from '@/components/app-dialog';
 import { ExerciseIcon } from '@/components/exercise-icon';
 import { GradientHero } from '@/components/gradient-hero';
 import { ThemedText } from '@/components/themed-text';
@@ -13,10 +14,19 @@ import { UI } from '@/constants/ui';
 import { getSessionTemplateById, newRunId, saveSessionRun } from '@/lib/workout-storage';
 import { SessionRun, SessionTemplate, SetResult } from '@/types/workout';
 
+type DialogState = {
+  title: string;
+  message: string;
+  tone?: 'default' | 'success' | 'danger';
+  actions: AppDialogAction[];
+};
+
 export default function CompleteSessionScreen() {
   const params = useLocalSearchParams<{ templateId?: string; startedAt?: string }>();
   const [template, setTemplate] = useState<SessionTemplate | null>(null);
   const [counts, setCounts] = useState<Record<string, string>>({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [dialog, setDialog] = useState<DialogState | null>(null);
 
   useEffect(() => {
     if (!params.templateId) return;
@@ -42,37 +52,71 @@ export default function CompleteSessionScreen() {
     setCounts((prev) => ({ ...prev, [key]: value }));
   };
 
+  const closeDialog = () => setDialog(null);
+
   const handleSave = async () => {
-    if (!template) return;
+    if (!template || isSaving) return;
 
-    const results: SetResult[] = [];
-    for (let setIndex = 0; setIndex < template.setsCount; setIndex += 1) {
-      template.exercises.forEach((exercise) => {
-        const key = `${setIndex}_${exercise.exerciseId}`;
-        const raw = counts[key]?.trim() ?? '';
-        const parsed = raw === '' ? null : Number(raw);
-        results.push({
-          exerciseId: exercise.exerciseId,
-          setIndex,
-          count: Number.isFinite(parsed) ? parsed : null,
-          durationSeconds: exercise.durationSeconds,
+    setIsSaving(true);
+
+    try {
+      const results: SetResult[] = [];
+      for (let setIndex = 0; setIndex < template.setsCount; setIndex += 1) {
+        template.exercises.forEach((exercise) => {
+          const key = `${setIndex}_${exercise.exerciseId}`;
+          const raw = counts[key]?.trim() ?? '';
+          const parsed = raw === '' ? null : Number(raw);
+          results.push({
+            exerciseId: exercise.exerciseId,
+            setIndex,
+            count: Number.isFinite(parsed) ? parsed : null,
+            durationSeconds: exercise.durationSeconds,
+          });
         });
+      }
+
+      const startedAt = params.startedAt ? Number(params.startedAt) : Date.now();
+      const run: SessionRun = {
+        id: newRunId(),
+        templateId: template.id,
+        templateName: template.name,
+        startedAt: Number.isFinite(startedAt) ? startedAt : Date.now(),
+        completedAt: Date.now(),
+        results,
+      };
+
+      await saveSessionRun(run);
+      setDialog({
+        title: 'Saved',
+        message: 'Session results saved.',
+        tone: 'success',
+        actions: [
+          {
+            label: 'Back to Home',
+            variant: 'primary',
+            onPress: () => {
+              closeDialog();
+              router.replace('/');
+            },
+          },
+        ],
       });
+    } catch {
+      setDialog({
+        title: 'Save Failed',
+        message: 'Could not save this session. Please try again.',
+        tone: 'danger',
+        actions: [
+          {
+            label: 'OK',
+            variant: 'primary',
+            onPress: closeDialog,
+          },
+        ],
+      });
+    } finally {
+      setIsSaving(false);
     }
-
-    const startedAt = params.startedAt ? Number(params.startedAt) : Date.now();
-    const run: SessionRun = {
-      id: newRunId(),
-      templateId: template.id,
-      templateName: template.name,
-      startedAt: Number.isFinite(startedAt) ? startedAt : Date.now(),
-      completedAt: Date.now(),
-      results,
-    };
-
-    await saveSessionRun(run);
-    Alert.alert('Saved', 'Session results saved.');
-    router.replace('/');
   };
 
   if (!template) {
@@ -132,12 +176,23 @@ export default function CompleteSessionScreen() {
             </ThemedView>
           ))}
 
-          <Pressable style={styles.primaryButton} onPress={handleSave}>
+          <Pressable
+            style={[styles.primaryButton, isSaving && styles.primaryButtonDisabled]}
+            disabled={isSaving}
+            onPress={handleSave}>
             <ThemedText type="defaultSemiBold" style={styles.buttonText}>
-              Save Results
+              {isSaving ? 'Saving...' : 'Save Results'}
             </ThemedText>
           </Pressable>
         </ScrollView>
+        <AppDialog
+          visible={dialog !== null}
+          title={dialog?.title ?? ''}
+          message={dialog?.message}
+          tone={dialog?.tone}
+          actions={dialog?.actions ?? []}
+          onRequestClose={closeDialog}
+        />
       </AppGradientBackground>
     </SafeAreaView>
   );
@@ -249,6 +304,9 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     borderRadius: 12,
     alignItems: 'center',
+  },
+  primaryButtonDisabled: {
+    opacity: 0.65,
   },
   buttonText: {
     color: '#ffffff',
