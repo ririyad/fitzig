@@ -58,3 +58,9 @@ export type AppSettings = {
   countdownEnabled: boolean;
   countdownSeconds: number;
 };
+
+export type StreakCache = {
+  longestStreak: number;
+  longestStreakDate: number; // timestamp when longest streak was achieved
+  lastCalculatedAt: number; // timestamp of last calculation
+};

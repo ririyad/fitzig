@@ -6,11 +6,13 @@ import {
   SessionRun,
   SessionStatus,
   SessionTemplate,
+  StreakCache,
 } from '@/types/workout';
 
 const STORAGE_KEY = 'fitzig:v1';
 const ACTIVE_SESSION_KEY = 'fitzig:active-session:v1';
 const SETTINGS_KEY = 'fitzig:settings:v1';
+const STREAK_CACHE_KEY = 'fitzig:streak-cache:v1';
 
 type StorageState = {
   templates: SessionTemplate[];
@@ -213,4 +215,42 @@ export async function getAppSettings(): Promise<AppSettings> {
 export async function saveAppSettings(settings: AppSettings): Promise<void> {
   const normalized = normalizeSettings(settings);
   await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(normalized));
+}
+
+export async function getStreakCache(): Promise<StreakCache | null> {
+  try {
+    const raw = await AsyncStorage.getItem(STREAK_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (
+      typeof parsed.longestStreak === 'number' &&
+      typeof parsed.longestStreakDate === 'number' &&
+      typeof parsed.lastCalculatedAt === 'number'
+    ) {
+      return parsed as StreakCache;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveStreakCache(cache: StreakCache): Promise<void> {
+  await AsyncStorage.setItem(STREAK_CACHE_KEY, JSON.stringify(cache));
+}
+
+export async function updateLongestStreak(currentStreak: number): Promise<number> {
+  const cache = await getStreakCache();
+  const longestStreak = cache?.longestStreak ?? 0;
+
+  if (currentStreak > longestStreak) {
+    await saveStreakCache({
+      longestStreak: currentStreak,
+      longestStreakDate: Date.now(),
+      lastCalculatedAt: Date.now(),
+    });
+    return currentStreak;
+  }
+
+  return longestStreak;
 }

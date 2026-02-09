@@ -16,8 +16,10 @@ import {
   getSessionTemplateById,
   listSessionRuns,
   listSessionTemplates,
+  updateLongestStreak,
 } from '@/lib/workout-storage';
 import { ActiveSessionSnapshot, SessionRun, SessionTemplate } from '@/types/workout';
+import { getStreakInfo, getStreakMessage } from '@/lib/streaks';
 import { UI } from '@/constants/ui';
 
 function formatDate(timestamp: number) {
@@ -36,6 +38,7 @@ export default function HomeScreen() {
   const [runs, setRuns] = useState<SessionRun[]>([]);
   const [resumeCard, setResumeCard] = useState<ResumeCard | null>(null);
   const [loading, setLoading] = useState(true);
+  const [streak, setStreak] = useState({ current: 0, longest: 0, workedOutToday: false });
   const insets = useSafeAreaInsets();
   const bottomPadding = 22 + Math.max(insets.bottom, 12);
   const appVersion = useMemo(
@@ -79,9 +82,18 @@ export default function HomeScreen() {
           }
         }
 
+        // Calculate streaks
+        const streakInfo = getStreakInfo(nextRuns);
+        const longestStreak = await updateLongestStreak(streakInfo.current);
+
         setTemplates(nextTemplates);
         setRuns(nextRuns);
         setResumeCard(nextResumeCard);
+        setStreak({
+          current: streakInfo.current,
+          longest: longestStreak,
+          workedOutToday: streakInfo.workedOutToday,
+        });
         setLoading(false);
       };
 
@@ -137,6 +149,38 @@ export default function HomeScreen() {
               </Pressable>
             </Link>
           </View>
+
+          {/* Streak Banner */}
+          <ThemedView style={[
+            styles.streakBanner,
+            streak.current > 0 && streak.workedOutToday && styles.streakBannerActive
+          ]}>
+            <View style={styles.streakContent}>
+              <View style={styles.streakIconContainer}>
+                <Ionicons 
+                  name="flame" 
+                  size={32} 
+                  color={streak.current > 0 && streak.workedOutToday ? '#f97316' : UI.textMuted} 
+                />
+              </View>
+              <View style={styles.streakTextContainer}>
+                <ThemedText type="title" style={styles.streakNumber}>
+                  {streak.current} {streak.current === 1 ? 'Day' : 'Days'}
+                </ThemedText>
+                <ThemedText style={styles.streakLabel}>
+                  {getStreakMessage(streak.current, streak.workedOutToday)}
+                </ThemedText>
+              </View>
+            </View>
+            {streak.longest > 0 && (
+              <View style={styles.streakBestContainer}>
+                <Ionicons name="trophy-outline" size={14} color={UI.textSoft} />
+                <ThemedText style={styles.streakBestText}>
+                  Best: {streak.longest}
+                </ThemedText>
+              </View>
+            )}
+          </ThemedView>
 
           <GradientHero variant="home" style={styles.hero}>
             <ThemedText type="title" style={styles.heroTitle} allowFontScaling={false}>
@@ -488,5 +532,58 @@ const styles = StyleSheet.create({
   },
   mutedText: {
     color: UI.textMuted,
+  },
+  streakBanner: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: UI.border,
+    backgroundColor: UI.bgElevated,
+    padding: 16,
+    gap: 12,
+  },
+  streakBannerActive: {
+    borderColor: '#f97316',
+    backgroundColor: 'rgba(249, 115, 22, 0.1)',
+  },
+  streakContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  streakIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: UI.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: UI.border,
+  },
+  streakTextContainer: {
+    flex: 1,
+  },
+  streakNumber: {
+    color: UI.text,
+    fontSize: 28,
+    lineHeight: 34,
+    marginBottom: 2,
+  },
+  streakLabel: {
+    color: UI.textMuted,
+    fontSize: 14,
+    lineHeight: 18,
+  },
+  streakBestContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-end',
+  },
+  streakBestText: {
+    color: UI.textSoft,
+    fontSize: 12,
+    lineHeight: 16,
+    fontFamily: 'Manrope_600SemiBold',
   },
 });

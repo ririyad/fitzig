@@ -9,7 +9,11 @@ import { GradientHero } from '@/components/gradient-hero';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { UI } from '@/constants/ui';
-import { clearAllAppData, getAppSettings, saveAppSettings } from '@/lib/workout-storage';
+import {
+  clearAllAppData,
+  getAppSettings,
+  saveAppSettings,
+} from '@/lib/workout-storage';
 import { AppSettings } from '@/types/workout';
 
 const DEFAULT_SETTINGS: AppSettings = {

@@ -11,8 +11,9 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { getExerciseMeta } from '@/constants/exercises';
 import { UI } from '@/constants/ui';
-import { getSessionTemplateById, newRunId, saveSessionRun } from '@/lib/workout-storage';
+import { getSessionTemplateById, newRunId, saveSessionRun, updateLongestStreak } from '@/lib/workout-storage';
 import { SessionRun, SessionTemplate, SetResult } from '@/types/workout';
+import { getStreakInfo, getStreakMessage } from '@/lib/streaks';
 
 type DialogState = {
   title: string;
@@ -86,9 +87,32 @@ export default function CompleteSessionScreen() {
       };
 
       await saveSessionRun(run);
+      
+      // Calculate streak after saving
+      const allRuns = await import('@/lib/workout-storage').then(m => m.listSessionRuns());
+      const streakInfo = getStreakInfo(allRuns);
+      const longestStreak = await updateLongestStreak(streakInfo.current);
+      const isNewRecord = streakInfo.current > longestStreak || 
+        (streakInfo.current === longestStreak && streakInfo.current > 0);
+      
+      // Milestone checks
+      const milestones = [3, 5, 7, 14, 21, 30];
+      const hitMilestone = milestones.includes(streakInfo.current);
+      
+      let message = 'Session results saved.';
+      if (streakInfo.current === 1) {
+        message += '\n\n🎉 First workout! Your streak has begun!';
+      } else if (isNewRecord && streakInfo.current > 1) {
+        message += `\n\n🔥 New record! ${streakInfo.current} day streak!`;
+      } else if (hitMilestone) {
+        message += `\n\n🔥 ${streakInfo.current} day streak! ${getStreakMessage(streakInfo.current, true)}`;
+      } else if (streakInfo.current > 1) {
+        message += `\n\n💪 Streak continues: ${streakInfo.current} days!`;
+      }
+      
       setDialog({
         title: 'Saved',
-        message: 'Session results saved.',
+        message,
         tone: 'success',
         actions: [
           {
