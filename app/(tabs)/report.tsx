@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
 import { AppGradientBackground } from '@/components/app-gradient-background';
 import { ExerciseIcon } from '@/components/exercise-icon';
@@ -214,24 +215,36 @@ export default function ReportScreen() {
             <>
               <View style={styles.metricsGrid}>
                 <ThemedView style={styles.metricCard}>
+                  <View style={styles.metricIconContainer}>
+                    <Ionicons name="fitness-outline" size={16} color={UI.accent} />
+                  </View>
                   <ThemedText style={styles.metricLabel}>Sessions</ThemedText>
                   <ThemedText type="title" style={styles.metricValue}>
                     {report.totalSessions}
                   </ThemedText>
                 </ThemedView>
                 <ThemedView style={styles.metricCard}>
+                  <View style={styles.metricIconContainer}>
+                    <Ionicons name="calendar-outline" size={16} color={UI.accent} />
+                  </View>
                   <ThemedText style={styles.metricLabel}>This Week</ThemedText>
                   <ThemedText type="title" style={styles.metricValue}>
                     {report.weeklySessions}
                   </ThemedText>
                 </ThemedView>
                 <ThemedView style={styles.metricCard}>
+                  <View style={styles.metricIconContainer}>
+                    <Ionicons name="barbell-outline" size={16} color={UI.accent} />
+                  </View>
                   <ThemedText style={styles.metricLabel}>Total Reps</ThemedText>
                   <ThemedText type="title" style={styles.metricValue}>
                     {report.totalReps}
                   </ThemedText>
                 </ThemedView>
                 <ThemedView style={styles.metricCard}>
+                  <View style={styles.metricIconContainer}>
+                    <Ionicons name="stats-chart-outline" size={16} color={UI.accent} />
+                  </View>
                   <ThemedText style={styles.metricLabel}>Avg / Set</ThemedText>
                   <ThemedText type="title" style={styles.metricValue}>
                     {report.averageReps}
@@ -458,15 +471,24 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   metricCard: {
-    width: '48%',
-    minWidth: 150,
-    borderRadius: 14,
+    flex: 1,
+    minWidth: '45%',
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: UI.border,
     backgroundColor: UI.card,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    gap: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 2,
+  },
+  metricIconContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: UI.bgMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
   },
   metricLabel: {
     color: UI.textMuted,

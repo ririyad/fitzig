@@ -654,6 +654,19 @@ export default function RunSessionScreen() {
                 <ThemedText style={styles.metaChipText}>{statusLabel}</ThemedText>
               </View>
             </View>
+            <View style={styles.progressContainer}>
+              <View style={styles.progressBarBg}>
+                <View 
+                  style={[
+                    styles.progressBarFill, 
+                    { width: `${(activeBlock / totalBlocks) * 100}%` }
+                  ]} 
+                />
+              </View>
+              <ThemedText style={styles.progressText}>
+                {Math.round((activeBlock / totalBlocks) * 100)}% complete
+              </ThemedText>
+            </View>
           </GradientHero>
 
           <View style={[styles.timerCard, isCriticalLastSeconds && styles.timerCardCritical]}>
@@ -697,9 +710,12 @@ export default function RunSessionScreen() {
               </ThemedText>
             ) : runtime.status === 'cooldown' ? (
               nextExerciseMeta ? (
-                <View style={styles.exerciseDisplayRow}>
-                  <ExerciseIcon exerciseId={nextExerciseMeta.id} color={UI.textMuted} />
-                  <ThemedText style={styles.nextExerciseText}>Up next: {nextExerciseMeta.name}</ThemedText>
+                <View style={styles.nextExerciseContainer}>
+                  <ThemedText style={styles.nextLabel}>UP NEXT</ThemedText>
+                  <View style={styles.exerciseDisplayRow}>
+                    <ExerciseIcon exerciseId={nextExerciseMeta.id} color={UI.textSoft} size={24} />
+                    <ThemedText style={styles.nextExerciseText}>{nextExerciseMeta.name}</ThemedText>
+                  </View>
                 </View>
               ) : (
                 <ThemedText style={styles.mutedText}>Up next: Next Exercise</ThemedText>
@@ -833,47 +849,72 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
   },
+  progressContainer: {
+    marginTop: 12,
+    gap: 6,
+  },
+  progressBarBg: {
+    height: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: UI.accent,
+    borderRadius: 3,
+  },
+  progressText: {
+    color: UI.textSoft,
+    fontSize: 11,
+    lineHeight: 14,
+    fontFamily: 'Manrope_600SemiBold',
+    textAlign: 'right',
+  },
   timerCard: {
-    borderRadius: 20,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: UI.border,
     backgroundColor: UI.card,
-    paddingVertical: 24,
-    paddingHorizontal: 16,
+    paddingVertical: 32,
+    paddingHorizontal: 20,
     alignItems: 'center',
-    gap: 10,
+    gap: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 4,
   },
   timerCardCritical: {
-    borderColor: 'rgba(248, 113, 113, 0.8)',
-    backgroundColor: 'rgba(127, 29, 29, 0.32)',
+    borderColor: 'rgba(248, 113, 113, 0.5)',
+    backgroundColor: 'rgba(127, 29, 29, 0.2)',
   },
   timerLabel: {
     color: UI.textMuted,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 20,
     textTransform: 'uppercase',
-    letterSpacing: 0.6,
+    letterSpacing: 1.2,
+    fontFamily: 'Manrope_700Bold',
   },
   timerLabelCritical: {
     color: '#fca5a5',
   },
   timerText: {
-    fontSize: 58,
-    lineHeight: 66,
-    fontFamily: 'Manrope_700Bold',
+    fontSize: 72,
+    lineHeight: 80,
+    fontFamily: 'Manrope_800ExtraBold',
     color: UI.text,
     textAlign: 'center',
     paddingHorizontal: 8,
   },
   timerTextCritical: {
     color: '#f87171',
-    textShadowColor: 'rgba(239, 68, 68, 0.6)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 16,
   },
   timerTextCompact: {
-    fontSize: 50,
-    lineHeight: 58,
+    fontSize: 60,
+    lineHeight: 68,
   },
   timerValueWrap: {
     width: '100%',
@@ -890,6 +931,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
+  nextExerciseContainer: {
+    backgroundColor: UI.bgMuted,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    alignItems: 'center',
+    gap: 4,
+    borderWidth: 1,
+    borderColor: UI.borderSoft,
+  },
+  nextLabel: {
+    color: UI.accent,
+    fontSize: 10,
+    lineHeight: 14,
+    fontFamily: 'Manrope_700Bold',
+    letterSpacing: 1,
+  },
   exerciseDisplayText: {
     color: UI.text,
     fontSize: 16,
@@ -897,10 +955,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope_600SemiBold',
   },
   nextExerciseText: {
-    color: UI.textMuted,
-    fontSize: 14,
-    lineHeight: 20,
-    fontFamily: 'Manrope_400Regular',
+    color: UI.textSoft,
+    fontSize: 16,
+    lineHeight: 22,
+    fontFamily: 'Manrope_600SemiBold',
   },
   controlsRow: {
     flexDirection: 'row',

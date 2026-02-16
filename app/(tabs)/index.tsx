@@ -228,24 +228,36 @@ export default function HomeScreen() {
 
           <View style={styles.metricsGrid}>
             <ThemedView style={styles.metricCard}>
+              <View style={styles.metricIconContainer}>
+                <Ionicons name="albums-outline" size={16} color={UI.accent} />
+              </View>
               <ThemedText style={styles.metricLabel}>Templates</ThemedText>
               <ThemedText type="title" style={styles.metricValue}>
                 {stats.templateCount}
               </ThemedText>
             </ThemedView>
             <ThemedView style={styles.metricCard}>
+              <View style={styles.metricIconContainer}>
+                <Ionicons name="calendar-outline" size={16} color={UI.accent} />
+              </View>
               <ThemedText style={styles.metricLabel}>Total Sessions</ThemedText>
               <ThemedText type="title" style={styles.metricValue}>
                 {stats.runCount}
               </ThemedText>
             </ThemedView>
             <ThemedView style={styles.metricCard}>
+              <View style={styles.metricIconContainer}>
+                <Ionicons name="trending-up-outline" size={16} color={UI.accent} />
+              </View>
               <ThemedText style={styles.metricLabel}>This Week</ThemedText>
               <ThemedText type="title" style={styles.metricValue}>
                 {stats.runsThisWeek}
               </ThemedText>
             </ThemedView>
             <ThemedView style={styles.metricCard}>
+              <View style={styles.metricIconContainer}>
+                <Ionicons name="barbell-outline" size={16} color={UI.accent} />
+              </View>
               <ThemedText style={styles.metricLabel}>Logged Reps</ThemedText>
               <ThemedText type="title" style={styles.metricValue}>
                 {stats.totalReps}
@@ -263,9 +275,12 @@ export default function HomeScreen() {
             {loading ? (
               <ThemedText style={styles.bodyText}>Loading templates...</ThemedText>
             ) : templates.length === 0 ? (
-              <ThemedText style={styles.mutedText}>
-                No templates yet. Create your first session to get started.
-              </ThemedText>
+              <View style={styles.emptyState}>
+                <Ionicons name="add-circle-outline" size={32} color={UI.textMuted} />
+                <ThemedText style={styles.mutedText}>
+                  No templates yet. Create your first session to get started.
+                </ThemedText>
+              </View>
             ) : (
               templates.map((template) => (
                 <View key={template.id} style={styles.itemCard}>
@@ -305,7 +320,10 @@ export default function HomeScreen() {
             {loading ? (
               <ThemedText style={styles.bodyText}>Loading sessions...</ThemedText>
             ) : runs.length === 0 ? (
-              <ThemedText style={styles.mutedText}>No completed sessions yet.</ThemedText>
+              <View style={styles.emptyState}>
+                <Ionicons name="time-outline" size={32} color={UI.textMuted} />
+                <ThemedText style={styles.mutedText}>No completed sessions yet.</ThemedText>
+              </View>
             ) : (
               runs.slice(0, 6).map((run) => (
                 <View key={run.id} style={styles.itemCard}>
@@ -434,15 +452,24 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   metricCard: {
-    width: '48%',
-    minWidth: 150,
-    borderRadius: 14,
+    flex: 1,
+    minWidth: '45%',
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: UI.border,
     backgroundColor: UI.card,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    gap: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 2,
+  },
+  metricIconContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: UI.bgMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
   },
   metricLabel: {
     color: UI.textMuted,
@@ -532,6 +559,12 @@ const styles = StyleSheet.create({
   },
   mutedText: {
     color: UI.textMuted,
+  },
+  emptyState: {
+    paddingVertical: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
   },
   streakBanner: {
     borderRadius: 16,

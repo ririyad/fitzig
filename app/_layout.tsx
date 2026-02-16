@@ -1,7 +1,7 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useFonts, Manrope_400Regular, Manrope_600SemiBold, Manrope_700Bold } from '@expo-google-fonts/manrope';
+import { useFonts, Manrope_400Regular, Manrope_600SemiBold, Manrope_700Bold, Manrope_800ExtraBold } from '@expo-google-fonts/manrope';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
@@ -31,6 +31,7 @@ export default function RootLayout() {
     Manrope_400Regular,
     Manrope_600SemiBold,
     Manrope_700Bold,
+    Manrope_800ExtraBold,
   });
 
   if (!fontsLoaded) {
