@@ -267,3 +267,7 @@ export async function updateLongestStreak(currentStreak: number): Promise<number
 
   return longestStreak;
 }
+
+export async function resetStreakCache(): Promise<void> {
+  await AsyncStorage.removeItem(STREAK_CACHE_KEY);
+}

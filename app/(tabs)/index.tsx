@@ -1,26 +1,27 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
+import Constants from 'expo-constants';
+import { Link } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { Link } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import Constants from 'expo-constants';
 
 import { AppGradientBackground } from '@/components/app-gradient-background';
 import { GradientHero } from '@/components/gradient-hero';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { UI } from '@/constants/ui';
+import { getStreakInfo, getStreakMessage } from '@/lib/streaks';
 import {
   clearActiveSessionSnapshot,
   getActiveSessionSnapshot,
   getSessionTemplateById,
   listSessionRuns,
   listSessionTemplates,
-  updateLongestStreak,
+  resetStreakCache,
+  updateLongestStreak
 } from '@/lib/workout-storage';
 import { ActiveSessionSnapshot, SessionRun, SessionTemplate } from '@/types/workout';
-import { getStreakInfo, getStreakMessage } from '@/lib/streaks';
-import { UI } from '@/constants/ui';
 
 function formatDate(timestamp: number) {
   return new Date(timestamp).toLocaleString();
@@ -84,7 +85,14 @@ export default function HomeScreen() {
 
         // Calculate streaks
         const streakInfo = getStreakInfo(nextRuns);
-        const longestStreak = await updateLongestStreak(streakInfo.current);
+        let longestStreak = 0;
+
+        if (nextRuns.length > 0) {
+          longestStreak = await updateLongestStreak(streakInfo.current);
+        } else {
+          // If no runs exist, streak history must be cleared
+          await resetStreakCache();
+        }
 
         setTemplates(nextTemplates);
         setRuns(nextRuns);
@@ -157,10 +165,10 @@ export default function HomeScreen() {
           ]}>
             <View style={styles.streakContent}>
               <View style={styles.streakIconContainer}>
-                <Ionicons 
-                  name="flame" 
-                  size={32} 
-                  color={streak.current > 0 && streak.workedOutToday ? '#f97316' : UI.textMuted} 
+                <Ionicons
+                  name="flame"
+                  size={32}
+                  color={streak.current > 0 && streak.workedOutToday ? '#f97316' : UI.textMuted}
                 />
               </View>
               <View style={styles.streakTextContainer}>
