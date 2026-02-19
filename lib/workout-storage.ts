@@ -198,7 +198,20 @@ export async function clearActiveSessionSnapshot(): Promise<void> {
 }
 
 export async function clearAllAppData(): Promise<void> {
-  await AsyncStorage.multiRemove([STORAGE_KEY, ACTIVE_SESSION_KEY, SETTINGS_KEY, STREAK_CACHE_KEY]);
+  const keys = [STORAGE_KEY, ACTIVE_SESSION_KEY, SETTINGS_KEY, STREAK_CACHE_KEY];
+  try {
+    await AsyncStorage.multiRemove(keys);
+  } catch (error) {
+    // Fallback to individual removal if multiRemove fails
+    console.error('Failed to clear app data via multiRemove', error);
+    for (const key of keys) {
+      try {
+        await AsyncStorage.removeItem(key);
+      } catch (e) {
+        console.error(`Failed to remove key ${key}`, e);
+      }
+    }
+  }
 }
 
 export async function getAppSettings(): Promise<AppSettings> {
