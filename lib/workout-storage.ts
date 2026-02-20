@@ -7,6 +7,7 @@ import {
   SessionStatus,
   SessionTemplate,
   StreakCache,
+  WeightEntry,
 } from '@/types/workout';
 
 const STORAGE_KEY = 'fitzig:v1';
@@ -17,11 +18,13 @@ const STREAK_CACHE_KEY = 'fitzig:streak-cache:v1';
 type StorageState = {
   templates: SessionTemplate[];
   runs: SessionRun[];
+  weightEntries: WeightEntry[];
 };
 
 const emptyState: StorageState = {
   templates: [],
   runs: [],
+  weightEntries: [],
 };
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -43,6 +46,7 @@ async function loadState(): Promise<StorageState> {
     return {
       templates: Array.isArray(parsed.templates) ? parsed.templates : [],
       runs: Array.isArray(parsed.runs) ? parsed.runs : [],
+      weightEntries: Array.isArray(parsed.weightEntries) ? parsed.weightEntries : [],
     };
   } catch {
     return emptyState;
@@ -149,6 +153,10 @@ export function newRunId() {
   return createId('run');
 }
 
+export function newWeightEntryId() {
+  return createId('weight');
+}
+
 export async function listSessionTemplates(): Promise<SessionTemplate[]> {
   const state = await loadState();
   return state.templates.slice().sort((a, b) => b.createdAt - a.createdAt);
@@ -176,6 +184,24 @@ export async function saveSessionRun(run: SessionRun): Promise<void> {
   const nextRuns = state.runs.filter((r) => r.id !== run.id);
   nextRuns.push(run);
   await saveState({ ...state, runs: nextRuns });
+}
+
+export async function listWeightEntries(): Promise<WeightEntry[]> {
+  const state = await loadState();
+  return state.weightEntries.slice().sort((a, b) => b.loggedAt - a.loggedAt);
+}
+
+export async function saveWeightEntry(entry: WeightEntry): Promise<void> {
+  const state = await loadState();
+  const nextEntries = state.weightEntries.filter((item) => item.id !== entry.id);
+  nextEntries.push(entry);
+  await saveState({ ...state, weightEntries: nextEntries });
+}
+
+export async function deleteWeightEntry(id: string): Promise<void> {
+  const state = await loadState();
+  const nextEntries = state.weightEntries.filter((entry) => entry.id !== id);
+  await saveState({ ...state, weightEntries: nextEntries });
 }
 
 export async function getActiveSessionSnapshot(): Promise<ActiveSessionSnapshot | null> {

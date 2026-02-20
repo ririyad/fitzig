@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,8 +11,13 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { getExerciseMeta } from '@/constants/exercises';
 import { UI } from '@/constants/ui';
-import { listSessionRuns } from '@/lib/workout-storage';
-import { SessionRun } from '@/types/workout';
+import {
+  listSessionRuns,
+  listWeightEntries,
+  newWeightEntryId,
+  saveWeightEntry,
+} from '@/lib/workout-storage';
+import { SessionRun, WeightEntry } from '@/types/workout';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CHART_HEIGHT = 92;
@@ -20,6 +25,11 @@ const PUSH_UP_ID = 'push_up';
 const PUSH_UP_WINDOW_DAYS = 30;
 const PUSH_UP_CHART_HEIGHT = 96;
 const PUSH_UP_BAR_MIN_HEIGHT = 4;
+const WEIGHT_CHART_HEIGHT = 118;
+const WEIGHT_POINT_SIZE = 8;
+const WEIGHT_POINT_RADIUS = WEIGHT_POINT_SIZE / 2;
+
+type WeightWindowDays = 7 | 30 | 90;
 
 function startOfDay(timestamp: number) {
   const value = new Date(timestamp);
@@ -46,8 +56,21 @@ type PushUpTrendPoint = {
   showLabel: boolean;
 };
 
+type WeightChartPoint = {
+  dayKey: number;
+  label: string;
+  value: number | null;
+  normalizedPercent: number;
+  showLabel: boolean;
+};
+
 export default function ReportScreen() {
   const [runs, setRuns] = useState<SessionRun[]>([]);
+  const [weightEntries, setWeightEntries] = useState<WeightEntry[]>([]);
+  const [weightInput, setWeightInput] = useState('');
+  const [savingWeight, setSavingWeight] = useState(false);
+  const [weightWindow, setWeightWindow] = useState<WeightWindowDays>(30);
+  const [weightChartWidth, setWeightChartWidth] = useState(0);
   const [loading, setLoading] = useState(true);
   const insets = useSafeAreaInsets();
   const bottomPadding = 20 + Math.max(insets.bottom, 12);
@@ -56,9 +79,13 @@ export default function ReportScreen() {
     useCallback(() => {
       let active = true;
       const load = async () => {
-        const nextRuns = await listSessionRuns();
+        const [nextRuns, nextWeightEntries] = await Promise.all([
+          listSessionRuns(),
+          listWeightEntries(),
+        ]);
         if (!active) return;
         setRuns(nextRuns);
+        setWeightEntries(nextWeightEntries);
         setLoading(false);
       };
 
@@ -178,8 +205,137 @@ export default function ReportScreen() {
     };
   }, [runs]);
 
+  const weightReport = useMemo(() => {
+    const todayStart = startOfDay(Date.now());
+    const labelStep = weightWindow === 7 ? 1 : weightWindow === 30 ? 5 : 15;
+    const dailyLatest = new Map<number, WeightEntry>();
+
+    weightEntries.forEach((entry) => {
+      const dayKey = startOfDay(entry.loggedAt);
+      const existing = dailyLatest.get(dayKey);
+      if (!existing || entry.loggedAt > existing.loggedAt) {
+        dailyLatest.set(dayKey, entry);
+      }
+    });
+
+    const points: WeightChartPoint[] = Array.from({ length: weightWindow }, (_, index) => {
+      const dayKey = todayStart - (weightWindow - 1 - index) * DAY_MS;
+      const label = new Date(dayKey).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      const entry = dailyLatest.get(dayKey);
+      return {
+        dayKey,
+        label,
+        value: entry ? entry.value : null,
+        normalizedPercent: 50,
+        showLabel: index % labelStep === 0 || index === weightWindow - 1,
+      };
+    });
+
+    const values = points
+      .map((point) => point.value)
+      .filter((value): value is number => value !== null);
+    const min = values.length > 0 ? Math.min(...values) : 0;
+    const max = values.length > 0 ? Math.max(...values) : 0;
+    const span = max - min;
+
+    points.forEach((point) => {
+      if (point.value === null) {
+        point.normalizedPercent = 50;
+      } else if (span === 0) {
+        point.normalizedPercent = 50;
+      } else {
+        point.normalizedPercent = ((point.value - min) / span) * 100;
+      }
+    });
+
+    const validPoints = points.filter(
+      (point): point is WeightChartPoint & { value: number } => point.value !== null
+    );
+    const latestPoint = validPoints.at(-1) ?? null;
+    const firstPoint = validPoints[0] ?? null;
+    const delta = latestPoint && firstPoint ? latestPoint.value - firstPoint.value : 0;
+
+    return {
+      points,
+      hasData: validPoints.length > 0,
+      entryCount: weightEntries.length,
+      latestValue: latestPoint?.value ?? null,
+      delta,
+      min,
+      max,
+    };
+  }, [weightEntries, weightWindow]);
+
+  const handleSaveWeight = useCallback(async () => {
+    const parsed = Number(weightInput.trim());
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      Alert.alert('Invalid Weight', 'Enter a valid body weight (example: 72.5).');
+      return;
+    }
+
+    if (savingWeight) return;
+
+    const normalized = Math.round(parsed * 10) / 10;
+    setSavingWeight(true);
+    try {
+      const entry: WeightEntry = {
+        id: newWeightEntryId(),
+        value: normalized,
+        unit: 'kg',
+        loggedAt: Date.now(),
+      };
+
+      await saveWeightEntry(entry);
+      const nextEntries = await listWeightEntries();
+      setWeightEntries(nextEntries);
+      setWeightInput('');
+    } catch {
+      Alert.alert('Save Failed', 'Could not save body weight. Please try again.');
+    } finally {
+      setSavingWeight(false);
+    }
+  }, [savingWeight, weightInput]);
+
   const maxDailyCount = Math.max(1, ...report.dailySessions.map((point) => point.count));
   const maxExerciseReps = Math.max(1, ...report.topExercises.map((item) => item.totalReps));
+  const weightDeltaText = `${weightReport.delta > 0 ? '+' : ''}${weightReport.delta.toFixed(1)} kg`;
+
+  const weightLineSegments = useMemo(() => {
+    if (weightChartWidth <= 0 || weightReport.points.length < 2) return [];
+
+    const pointsCount = weightReport.points.length;
+    const stepX = weightChartWidth / (pointsCount - 1);
+
+    const plotted = weightReport.points.map((point, index) => {
+      if (point.value === null) return null;
+      const x = index * stepX;
+      const y = WEIGHT_CHART_HEIGHT - (point.normalizedPercent / 100) * WEIGHT_CHART_HEIGHT;
+      return { x, y };
+    });
+
+    const segments: { left: number; top: number; width: number; angle: string }[] = [];
+    for (let index = 0; index < plotted.length - 1; index += 1) {
+      const from = plotted[index];
+      const to = plotted[index + 1];
+      if (!from || !to) continue;
+
+      const dx = to.x - from.x;
+      const dy = to.y - from.y;
+      const width = Math.hypot(dx, dy);
+      const angle = `${Math.atan2(dy, dx)}rad`;
+
+      const left = from.x + (dx - width) / 2;
+      const top = from.y + dy / 2 - 1;
+      segments.push({
+        left,
+        top,
+        width,
+        angle,
+      });
+    }
+
+    return segments;
+  }, [weightChartWidth, weightReport.points]);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -251,6 +407,149 @@ export default function ReportScreen() {
                   </ThemedText>
                 </ThemedView>
               </View>
+
+              <ThemedView style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <ThemedText type="subtitle" style={styles.sectionTitle}>
+                    Body Weight
+                  </ThemedText>
+                  <ThemedText style={styles.metaText}>{weightReport.entryCount} entries</ThemedText>
+                </View>
+
+                <View style={styles.weightInputRow}>
+                  <TextInput
+                    style={styles.weightInput}
+                    value={weightInput}
+                    onChangeText={setWeightInput}
+                    keyboardType="decimal-pad"
+                    placeholder="Weight (kg)"
+                    placeholderTextColor={UI.textMuted}
+                  />
+                  <Pressable
+                    style={[styles.weightSaveButton, savingWeight && styles.weightSaveButtonDisabled]}
+                    onPress={() => void handleSaveWeight()}
+                    disabled={savingWeight}>
+                    <ThemedText type="defaultSemiBold" style={styles.weightSaveButtonText}>
+                      {savingWeight ? 'Saving...' : 'Log Weight'}
+                    </ThemedText>
+                  </Pressable>
+                </View>
+
+                <View style={styles.weightWindowRow}>
+                  {([7, 30, 90] as const).map((days) => (
+                    <Pressable
+                      key={days}
+                      style={[
+                        styles.weightWindowButton,
+                        weightWindow === days && styles.weightWindowButtonActive,
+                      ]}
+                      onPress={() => setWeightWindow(days)}>
+                      <ThemedText
+                        style={[
+                          styles.weightWindowText,
+                          weightWindow === days && styles.weightWindowTextActive,
+                        ]}>
+                        {days}D
+                      </ThemedText>
+                    </Pressable>
+                  ))}
+                </View>
+
+                <View style={styles.weightSummaryRow}>
+                  <View style={styles.weightKpiItem}>
+                    <ThemedText style={styles.metricLabel}>Latest</ThemedText>
+                    <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+                      {weightReport.latestValue !== null ? `${weightReport.latestValue.toFixed(1)} kg` : '--'}
+                    </ThemedText>
+                  </View>
+                  <View style={styles.weightKpiItem}>
+                    <ThemedText style={styles.metricLabel}>Change</ThemedText>
+                    <ThemedText
+                      type="defaultSemiBold"
+                      style={[
+                        styles.bodyText,
+                        weightReport.delta < 0
+                          ? styles.weightDeltaDown
+                          : weightReport.delta > 0
+                            ? styles.weightDeltaUp
+                            : undefined,
+                      ]}>
+                      {weightReport.hasData ? weightDeltaText : '--'}
+                    </ThemedText>
+                  </View>
+                  <View style={styles.weightKpiItem}>
+                    <ThemedText style={styles.metricLabel}>Range</ThemedText>
+                    <ThemedText type="defaultSemiBold" style={styles.bodyText}>
+                      {weightReport.hasData
+                        ? `${weightReport.min.toFixed(1)}-${weightReport.max.toFixed(1)}`
+                        : '--'}
+                    </ThemedText>
+                  </View>
+                </View>
+
+                {weightReport.hasData ? (
+                  <>
+                    <View
+                      style={styles.weightChartArea}
+                      onLayout={(event) => {
+                        const nextWidth = Math.round(event.nativeEvent.layout.width);
+                        if (nextWidth !== weightChartWidth) {
+                          setWeightChartWidth(nextWidth);
+                        }
+                      }}>
+                      <View style={[styles.weightGuideLine, styles.weightGuideLineTop]} />
+                      <View style={[styles.weightGuideLine, styles.weightGuideLineMiddle]} />
+                      <View style={[styles.weightGuideLine, styles.weightGuideLineBottom]} />
+                      {weightLineSegments.map((segment, index) => (
+                        <View
+                          key={`line_${index}`}
+                          style={[
+                            styles.weightLineSegment,
+                            {
+                              left: segment.left,
+                              top: segment.top,
+                              width: segment.width,
+                              transform: [{ rotate: segment.angle }],
+                            },
+                          ]}
+                        />
+                      ))}
+                      <View style={styles.weightPointRow}>
+                        {weightReport.points.map((point) => (
+                          <View key={point.dayKey} style={styles.weightPointColumn}>
+                            <View style={styles.weightPointTrack}>
+                              {point.value !== null && (
+                                <View
+                                  style={[
+                                    styles.weightPointDot,
+                                    {
+                                      left: -WEIGHT_POINT_RADIUS,
+                                      bottom: point.normalizedPercent - WEIGHT_POINT_RADIUS,
+                                    },
+                                  ]}
+                                />
+                              )}
+                            </View>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                    <View style={styles.weightLabelRow}>
+                      {weightReport.points
+                        .filter((point) => point.showLabel)
+                        .map((point) => (
+                          <ThemedText key={point.dayKey} numberOfLines={1} style={styles.weightLabelText}>
+                            {point.label}
+                          </ThemedText>
+                        ))}
+                    </View>
+                  </>
+                ) : (
+                  <ThemedText style={styles.mutedText}>
+                    Start logging your body weight to unlock the 7D, 30D, and 90D trend chart.
+                  </ThemedText>
+                )}
+              </ThemedView>
 
               <ThemedView style={styles.card}>
                 <ThemedText type="subtitle" style={styles.sectionTitle}>
@@ -569,6 +868,147 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   pushUpLabelText: {
+    color: UI.textMuted,
+    fontSize: 9,
+    lineHeight: 12,
+    width: 42,
+    textAlign: 'center',
+  },
+  weightInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  weightInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: UI.border,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    backgroundColor: UI.card,
+    color: UI.text,
+    fontFamily: 'Manrope_600SemiBold',
+  },
+  weightSaveButton: {
+    borderRadius: 10,
+    backgroundColor: UI.accent,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  weightSaveButtonDisabled: {
+    opacity: 0.6,
+  },
+  weightSaveButtonText: {
+    color: '#ffffff',
+  },
+  weightWindowRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  weightWindowButton: {
+    borderWidth: 1,
+    borderColor: UI.borderSoft,
+    backgroundColor: UI.bgMuted,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  weightWindowButtonActive: {
+    borderColor: UI.accent,
+    backgroundColor: UI.cardStrong,
+  },
+  weightWindowText: {
+    color: UI.textSoft,
+    fontSize: 12,
+    lineHeight: 16,
+    fontFamily: 'Manrope_600SemiBold',
+  },
+  weightWindowTextActive: {
+    color: UI.accentStrong,
+  },
+  weightSummaryRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  weightKpiItem: {
+    flex: 1,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: UI.borderSoft,
+    backgroundColor: UI.bgMuted,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    gap: 2,
+  },
+  weightDeltaUp: {
+    color: UI.success,
+  },
+  weightDeltaDown: {
+    color: UI.danger,
+  },
+  weightChartArea: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: UI.borderSoft,
+    backgroundColor: UI.bgMuted,
+    height: WEIGHT_CHART_HEIGHT,
+    overflow: 'hidden',
+    justifyContent: 'center',
+  },
+  weightGuideLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: UI.border,
+  },
+  weightGuideLineTop: {
+    top: 0,
+  },
+  weightGuideLineMiddle: {
+    top: Math.round(WEIGHT_CHART_HEIGHT / 2),
+  },
+  weightGuideLineBottom: {
+    bottom: 0,
+  },
+  weightLineSegment: {
+    position: 'absolute',
+    height: 2,
+    borderRadius: 999,
+    backgroundColor: UI.accent,
+  },
+  weightPointRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    height: WEIGHT_CHART_HEIGHT,
+  },
+  weightPointColumn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  weightPointTrack: {
+    width: 1,
+    height: WEIGHT_CHART_HEIGHT,
+    position: 'relative',
+  },
+  weightPointDot: {
+    position: 'absolute',
+    width: WEIGHT_POINT_SIZE,
+    height: WEIGHT_POINT_SIZE,
+    borderRadius: WEIGHT_POINT_RADIUS,
+    backgroundColor: UI.accentStrong,
+    borderWidth: 1,
+    borderColor: '#ffffff',
+  },
+  weightLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 6,
+  },
+  weightLabelText: {
     color: UI.textMuted,
     fontSize: 9,
     lineHeight: 12,

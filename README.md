@@ -2,7 +2,7 @@
 
 Fitzig is a modern, privacy-first mobile workout tracker built with **Expo** and **React Native**. It focuses on guided, time-based exercise sessions with a clean, high-contrast UI designed for use in the gym.
 
-Current Version: `0.2.0`
+Current Version: `0.5.0`
 
 ## Philosophy
 

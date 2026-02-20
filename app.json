@@ -2,7 +2,7 @@
   "expo": {
     "name": "fitzig",
     "slug": "fitzig",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "backgroundColor": "#070d1a",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -14,7 +14,7 @@
     },
     "android": {
       "package": "com.craftonics.fitzig",
-      "versionCode": 5,
+      "versionCode": 6,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

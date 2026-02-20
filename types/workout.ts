@@ -59,6 +59,13 @@ export type AppSettings = {
   countdownSeconds: number;
 };
 
+export type WeightEntry = {
+  id: string;
+  value: number;
+  unit: 'kg';
+  loggedAt: number;
+};
+
 export type StreakCache = {
   longestStreak: number;
   longestStreakDate: number; // timestamp when longest streak was achieved

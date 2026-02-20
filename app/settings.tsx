@@ -101,7 +101,7 @@ export default function SettingsScreen() {
       setSettings(DEFAULT_SETTINGS);
       setDialog({
         title: 'Data Cleared',
-        message: 'All sessions, templates, and settings have been removed.',
+        message: 'All sessions, weight history, templates, and settings have been removed.',
         tone: 'success',
         actions: [
           {
@@ -132,7 +132,8 @@ export default function SettingsScreen() {
   const executeClearData = () => {
     setDialog({
       title: 'Delete Everything?',
-      message: 'This action permanently deletes all sessions, reps, templates, and settings on this device.',
+      message:
+        'This action permanently deletes all sessions, reps, weight history, templates, and settings on this device.',
       tone: 'danger',
       dismissible: false,
       actions: [
@@ -278,7 +279,7 @@ export default function SettingsScreen() {
                   Danger Zone
                 </ThemedText>
                 <ThemedText style={styles.dangerBody}>
-                  Clear all local data including sessions, reps history, templates, saved run state,
+                  Clear all local data including sessions, reps history, weight history, templates, saved run state,
                   and settings.
                 </ThemedText>
                 <Pressable
